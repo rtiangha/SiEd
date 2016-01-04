@@ -1,4 +1,4 @@
-# SiEd
+# SiEd - Text Editing for Palms
 This is the original SiEd text editor for Palm OS devices developed by Benjamin Roe. This project was originally developed by Ben Roe and was hosted at [benroe.com](https://web.archive.org/web/20070323092635/http://benroe.com/sied/index.php) which shut down some time in mid-2007.
 
 The final stable version released publically was 0.9.11 released on March 5, 2005 and the final beta version was 0.10-beta3 released on April 27, 2005.
@@ -28,6 +28,9 @@ Using the editor is pretty self explanatory. All commands have a keyboard equiva
 
 ## Requirements
 * PalmOS v.3.5 or greater
+
+## Usage
+There is a usage guide with screenshots and other useful information available from the original project site, which you can now access via [Archive.org's Wayback Machine](https://web.archive.org/web/20070130170506/http://benroe.com/sied/user.php).
 
 ## Development Environment
 Compiles using PRC-Tools and PiLRC.
