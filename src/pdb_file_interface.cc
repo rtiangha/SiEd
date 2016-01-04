@@ -57,16 +57,16 @@ void pdb_SiFile::startup()
 
 void pdb_SiFile::close()
 {
-  #ifdef TEST_OBJECTS
-  /*  if(m_id!=NULL)
-    {
-      UInt32 temp_size;
-      DmDatabaseSize(THE_CARD,m_id,NULL,NULL,&temp_size);
-      Char buff[100];
-      StrPrintF(buff,"Actual size=%lu, m_file_size=%lu",temp_size,m_file_size);
-      ErrFatalDisplayIf(m_file_size!=temp_size,buff);
-      }*/
-  #endif
+#ifdef DEBUG
+	/*  if(m_id!=NULL)
+	  {
+	    UInt32 temp_size;
+	    DmDatabaseSize(THE_CARD,m_id,NULL,NULL,&temp_size);
+	    Char buff[100];
+	    StrPrintF(buff,"Actual size=%lu, m_file_size=%lu",temp_size,m_file_size);
+	    ErrFatalDisplayIf(m_file_size!=temp_size,buff);
+	    }*/
+#endif
 
 	if(m_trans!=NULL)
 		m_trans->finalise();
@@ -104,7 +104,7 @@ Boolean pdb_SiFile::do_open()
 		//check for read only database
 
 		if(attr&dmHdrAttrReadOnly)
-		  m_is_read_only=true;
+			m_is_read_only=true;
 		return true;
 
 	}
@@ -117,17 +117,17 @@ Boolean pdb_SiFile::do_open()
 
 void pdb_SiFile::unlock()
 {
-  if(m_curr_locked!=NULL)
-    {
-      MemHandleUnlock(m_curr_handle);
-      m_curr_locked=NULL;
-    }
-  
-  if(m_curr_handle!=NULL)
-    {
-      DmReleaseRecord(m_open_ref,curr_record_index,m_changed);
-      m_curr_handle=NULL;
-    }
+	if(m_curr_locked!=NULL)
+	{
+		MemHandleUnlock(m_curr_handle);
+		m_curr_locked=NULL;
+	}
+
+	if(m_curr_handle!=NULL)
+	{
+		DmReleaseRecord(m_open_ref,curr_record_index,m_changed);
+		m_curr_handle=NULL;
+	}
 }
 
 void pdb_SiFile::rename(Char * new_name)
@@ -137,16 +137,17 @@ void pdb_SiFile::rename(Char * new_name)
 	log_entry("pdb_SiFile::renaming file");
 	log_entry(new_name);
 #endif
-       #ifdef TEST_OBJECTS
+       #ifdef DEBUG
+
 	ErrFatalDisplayIf(m_id==NULL,"Renaming non-existent file");
-	#endif
+#endif
 
 	Err err=DmSetDatabaseInfo(THE_CARD,m_id,new_name,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 
 	if(err!=errNone)
 	{
-	  if(display_warnings)
-	    DisplayError(UNABLE_TO_SAVE,new_name);
+		if(display_warnings)
+			DisplayError(UNABLE_TO_SAVE,new_name);
 	}
 	else
 	{
@@ -172,7 +173,7 @@ Boolean pdb_SiFile::add_record(const UInt16 size)
 	{
 		close();
 		if(display_warnings)
-		  DisplayError(UNABLE_TO_SAVE,"Not enough space to save file");
+			DisplayError(UNABLE_TO_SAVE,"Not enough space to save file");
 		return false;
 	}
 	DmReleaseRecord(m_open_ref,recordIndex,false);
@@ -200,9 +201,10 @@ UInt32 pdb_SiFile::get_mod_time()
 
 void pdb_SiFile::delete_file()
 {
-#ifdef TEST_OBJECTS
-  ErrFatalDisplayIf(m_id==NULL,"Deleting non-existent file");
+#ifdef DEBUG
+	ErrFatalDisplayIf(m_id==NULL,"Deleting non-existent file");
 #endif
+
 	close();
 	if(m_id!=0)
 	{

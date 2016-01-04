@@ -28,13 +28,13 @@ public:
 
 protected:
 	friend void SiFile::write_direct(const SiMemChunk * const chunk);
-	virtual Boolean do_initialise(const Int16 access_mode) FILE_SECTION;
-	virtual void do_finalise() FILE_SECTION;
+	virtual Boolean do_initialise(const Int16 access_mode) __attribute__ ((section ("filefns")));
+	virtual void do_finalise() __attribute__ ((section ("filefns")));
 	virtual void do_flush();
 	virtual void process_data_to_storage(const SiMemChunk * const chunk);
 	virtual void process_data_from_storage(SiMemChunk * chunk);
-	void delete_cache() FILE_SECTION;
-	void initialise_cache() FILE_SECTION;
+	void delete_cache() __attribute__ ((section ("filefns")));
+	void initialise_cache() __attribute__ ((section ("filefns")));
 	void copy_to_cache(const Char * data,const UInt32 size);
 	UInt32 last_cache_pos;
 	UInt32 cache_end;

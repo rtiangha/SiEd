@@ -32,8 +32,8 @@ enum {INSERTED_TEXT,DELETED_TEXT};
 class SiUndoAction
 {
 public:
-	SiUndoAction() TEXT_SECTION;
-	~SiUndoAction() TEXT_SECTION;
+	SiUndoAction() __attribute__ ((section ("texfns")));
+	~SiUndoAction() __attribute__ ((section ("texfns")));
 	SiMemChunk * text;
 	Position start_position;
 	Position start_undone_position;
@@ -49,68 +49,69 @@ class SiEditor;
 class SiTextHandler
 {
 public:
-	SiTextHandler()  TEXT_SECTION;
-	~SiTextHandler()  TEXT_SECTION;
-	void initialise()  TEXT_SECTION;
+	SiTextHandler()  __attribute__ ((section ("texfns")));
+	~SiTextHandler()  __attribute__ ((section ("texfns")));
+	void initialise()  __attribute__ ((section ("texfns")));
 
 	//document editing functions
-	Boolean insert_chars(const Char* c,const BlockInt n_chars,const BlockInt n_bytes,Position  ch,Position & f_cursor_pos) TEXT_SECTION;
-	Position delete_chars(Position start,Position end) TEXT_SECTION;
+	Boolean insert_chars(const Char* c,const BlockInt n_chars,const BlockInt n_bytes,Position  ch,Position & f_cursor_pos) __attribute__ ((section ("texfns")));
+	Position delete_chars(Position start,Position end) __attribute__ ((section ("texfns")));
 
 	//Undo functions
-	Boolean undo(Position & f_cursor_pos) TEXT_SECTION;
-	Boolean redo(Position & f_cursor_pos) TEXT_SECTION ;
+	Boolean undo(Position & f_cursor_pos) __attribute__ ((section ("texfns")));
+	Boolean redo(Position & f_cursor_pos) __attribute__ ((section ("texfns"))) ;
 
 	//Document data get functions
 
-	Position get_prev_pos(Position p) TEXT_SECTION;
-	Position get_next_pos(Position p) TEXT_SECTION;
-	UInt32 get_number_words(UInt32 & alphanum_chars) TEXT_SECTION;
+	Position get_prev_pos(Position p) __attribute__ ((section ("texfns")));
+	Position get_next_pos(Position p) __attribute__ ((section ("texfns")));
+	UInt32 get_number_words(UInt32 & alphanum_chars) __attribute__ ((section ("texfns")));
 
-	Position find_prev_word_boundary(Position start,const Boolean ignore_punctuation=true) TEXT_SECTION;
-	Position find_next_word_boundary(Position start,const Boolean ignore_punctuation=true) TEXT_SECTION;
+	Position find_prev_word_boundary(Position start,const Boolean ignore_punctuation=true) __attribute__ ((section ("texfns")));
+	Position find_next_word_boundary(Position start,const Boolean ignore_punctuation=true) __attribute__ ((section ("texfns")));
 
-	WChar get_charAtpos(Position &p) TEXT_SECTION;
-	WChar get_charBeforepos(Position &p) TEXT_SECTION ;
-	SiDocument * get_document() TEXT_SECTION;
-	
-#ifdef TEST_OBJECTS
-	Boolean perform_tests() TEXT_SECTION;
+	WChar get_charAtpos(Position &p) __attribute__ ((section ("texfns")));
+	WChar get_charBeforepos(Position &p) __attribute__ ((section ("texfns"))) ;
+	SiDocument * get_document() __attribute__ ((section ("texfns")));
+
+#ifdef DEBUG
+
+	Boolean perform_tests() __attribute__ ((section ("texfns")));
 #endif
 
-	void enable_undo_history() TEXT_SECTION;
-	void disable_undo_history() TEXT_SECTION;
+	void enable_undo_history() __attribute__ ((section ("texfns")));
+	void disable_undo_history() __attribute__ ((section ("texfns")));
 
 
 private:
-	SiUndoAction * create_undo_action() TEXT_SECTION;
-	Boolean ensure_undo_space(const BlockInt n_bytes) TEXT_SECTION;
-	//BlockInt paste_efficiency_hack(const BlockInt line,const BlockInt n_chars) TEXT_SECTION;
-	Boolean find_delimiter(const SiMemChunk * chunk,BlockInt start_offset)TEXT_SECTION;
-	void free_text() TEXT_SECTION;
-	Boolean validate_position(Position & p) TEXT_SECTION;
+	SiUndoAction * create_undo_action() __attribute__ ((section ("texfns")));
+	Boolean ensure_undo_space(const BlockInt n_bytes) __attribute__ ((section ("texfns")));
+	//BlockInt paste_efficiency_hack(const BlockInt line,const BlockInt n_chars) __attribute__ ((section ("texfns")));
+	Boolean find_delimiter(const SiMemChunk * chunk,BlockInt start_offset)__attribute__ ((section ("texfns")));
+	void free_text() __attribute__ ((section ("texfns")));
+	Boolean validate_position(Position & p) __attribute__ ((section ("texfns")));
 
-	void remove_text_range(const Int16 line,const BlockInt  start_x,BlockInt  end_x) TEXT_SECTION;
-	Boolean remove_blocks(const Int16 start_line,const Int16 end_line) TEXT_SECTION;
-	block* insert_new_blocks(const Int16 num) TEXT_SECTION;
+	void remove_text_range(const Int16 line,const BlockInt  start_x,BlockInt  end_x) __attribute__ ((section ("texfns")));
+	Boolean remove_blocks(const Int16 start_line,const Int16 end_line) __attribute__ ((section ("texfns")));
+	block* insert_new_blocks(const Int16 num) __attribute__ ((section ("texfns")));
 
-	
+
 	//line handling
-	//	void remove_block(const Int16 line) TEXT_SECTION;
+	//	void remove_block(const Int16 line) __attribute__ ((section ("texfns")));
 
 
-	Boolean add_undo_action(const Char * text,const BlockInt bytes,Position start_pos,Position end_pos,UInt8 type) TEXT_SECTION;
-	Boolean append_text_undo_action(const Char * text,const BlockInt bytes) TEXT_SECTION;
-	Boolean remove_last_undo_action() TEXT_SECTION;
+	Boolean add_undo_action(const Char * text,const BlockInt bytes,Position start_pos,Position end_pos,UInt8 type) __attribute__ ((section ("texfns")));
+	Boolean append_text_undo_action(const Char * text,const BlockInt bytes) __attribute__ ((section ("texfns")));
+	Boolean remove_last_undo_action() __attribute__ ((section ("texfns")));
 
-	void clear_undo_history() TEXT_SECTION;
-	void clear_actions_after(SiUndoAction * action) TEXT_SECTION;
-	void perform_action(SiUndoAction * action,Boolean reverse,Position & f_cursor_pos) TEXT_SECTION;
-	void change_undo_action_end(Position end_pos) TEXT_SECTION;
-	void change_undo_action_start(Position pos) TEXT_SECTION;
+	void clear_undo_history() __attribute__ ((section ("texfns")));
+	void clear_actions_after(SiUndoAction * action) __attribute__ ((section ("texfns")));
+	void perform_action(SiUndoAction * action,Boolean reverse,Position & f_cursor_pos) __attribute__ ((section ("texfns")));
+	void change_undo_action_end(Position end_pos) __attribute__ ((section ("texfns")));
+	void change_undo_action_start(Position pos) __attribute__ ((section ("texfns")));
 	//sloshing
-	void invalidate_cache() TEXT_SECTION;
-	void add_block_delete_undo(const Int16 line) TEXT_SECTION;
+	void invalidate_cache() __attribute__ ((section ("texfns")));
+	void add_block_delete_undo(const Int16 line) __attribute__ ((section ("texfns")));
 	//Internal state data
 
 	Position undo_position_start;
@@ -118,7 +119,7 @@ private:
 	Boolean undo_undone;
 	Int16 undo_action;
 	Boolean undo_active;
-//	Int16 insert_block_curr_width;
+	//	Int16 insert_block_curr_width;
 
 	//document data storage
 	//MemHandle block_buffer_array_handle;

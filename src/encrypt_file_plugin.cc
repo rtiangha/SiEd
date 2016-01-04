@@ -133,7 +133,7 @@ Char * encrypt_SiFilePlugin::get_salt()
 	Char * salt=(Char*)MemPtrNew(SALT_LENGTH);
 	for(Int16 i=0;i<SALT_LENGTH;++i)
 	{
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 		salt[i]=i;
 #else
 

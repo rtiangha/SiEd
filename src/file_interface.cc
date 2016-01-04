@@ -27,7 +27,7 @@ Boolean SiFile::display_warnings=false;
 SiFile::SiFile(const Char * file_name,const Char * p_location,const UInt16 p_vol,const UInt32 size)
 {
 	//constructor for creating a file
-  
+
 	init(file_name,p_location);
 	m_file_size=size;
 }
@@ -41,17 +41,17 @@ SiFile::SiFile(const Char * file_name,const Char * p_location,const UInt16 p_vol
 void SiFile::init(const Char * file_name,const Char * p_location)
 {
 	//initialise all common file members
-  m_is_read_only=false;
+	m_is_read_only=false;
 	m_name=(Char*)MemPtrNew(StrLen(file_name)+1);
 	StrCopy(m_name,file_name);
 	if(p_location!=NULL)
 	{
-	  m_location=(Char*)MemPtrNew(StrLen(p_location)+1);
-	  StrCopy(m_location,p_location);
+		m_location=(Char*)MemPtrNew(StrLen(p_location)+1);
+		StrCopy(m_location,p_location);
 	}
 	else
-	  m_location=NULL;
-	
+		m_location=NULL;
+
 	m_cursor=0;
 	m_file_open=false;
 	m_trans=NULL;
@@ -63,16 +63,16 @@ SiFile::~SiFile()
 	//make sure the file is closed when object is deleted!
 	close();
 	if(m_name!=NULL)
-	  MemPtrFree(m_name);
+		MemPtrFree(m_name);
 	if(m_location!=NULL)
-	  {
-	    MemPtrFree(m_location);
-	  }
-	
-	
+	{
+		MemPtrFree(m_location);
+	}
+
+
 	if(m_trans!=NULL)
-	  delete m_trans;
-	
+		delete m_trans;
+
 
 }
 
@@ -98,7 +98,7 @@ Boolean SiFile::is_open()
 //not actually ever called at present, AFAIK
 void SiFile::delete_plugin(const Int16 position)
 {
-#ifdef TEST_OBJECTS_LOG
+#ifdef DEBUG_LOG
 	log_entry("SiFile::Deleting plugin");
 #endif
 	//delete the plugin either AT_END or AT_START of the plugin chain
@@ -131,7 +131,7 @@ void SiFile::delete_plugin(const Int16 position)
 //either at end or beginning of chain
 void SiFile::add_plugin(SiFilePlugin * p_trans,const Int16 position)
 {
-#ifdef TEST_OBJECTS_LOG
+#ifdef DEBUG_LOG
 	log_entry("SiFile::adding plugin");
 #endif
 	//add a plugin to the plugin chain
@@ -189,7 +189,6 @@ void SiFile::close()
 
 void SiFile::set_access_mode(const Int16 mode)
 {
-
 }
 
 void SiFile::initialise(const Int16 file_mode)
@@ -204,7 +203,7 @@ void SiFile::initialise(const Int16 file_mode)
 }
 void SiFile::write_data(const SiMemChunk * const chunk)
 {
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 	ErrFatalDisplayIf(!m_file_open,"Writing to closed file");
 #endif
 
@@ -222,25 +221,26 @@ void SiFile::write_data(const SiMemChunk * const chunk)
 SiMemChunk * SiFile::read_data(BlockInt & n_chars)
 {
 	UInt32 bytes_to_read;
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 	ErrFatalDisplayIf(!m_file_open,"Reading to closed file");
 #endif
 
 	if((m_cursor+SiMemHandler::MEMORY_CHUNK_SIZE)>m_file_size)
-	  {
-	    if(m_file_size<m_cursor)
-	      bytes_to_read=0;
-	    else
-	      bytes_to_read=m_file_size-m_cursor;
-	  }
+	{
+		if(m_file_size<m_cursor)
+			bytes_to_read=0;
+		else
+			bytes_to_read=m_file_size-m_cursor;
+	}
 	else
-	  bytes_to_read=SiMemHandler::MEMORY_CHUNK_SIZE;
+		bytes_to_read=SiMemHandler::MEMORY_CHUNK_SIZE;
 
 	if(bytes_to_read==0)
 	{
-	  //nothing left to do so return
-	  n_chars=0;
-	  return NULL;
+		//nothing left to do so return
+		n_chars=0;
+		return NULL;
 	}
 
 	SiMemChunk * curr_chunk=SiMemHandler::get_chunk_quick(bytes_to_read);
@@ -262,17 +262,17 @@ SiMemChunk * SiFile::read_data(BlockInt & n_chars)
 		return NULL;
 	}
 	else if(bytes<curr_chunk->size)
-	  {
+	{
 		curr_chunk=SiMemHandler::resize_chunk(curr_chunk,bytes,TO_START);
 
-	  }
+	}
 
 	if(m_trans!=NULL)
 		m_trans->translate_from_storage(curr_chunk);
 
 	bytes_to_read=SiUtility::last_char_boundary(curr_chunk->mem_ptr,&n_chars,curr_chunk->size);
 	if(bytes_to_read!=curr_chunk->size)
-	  curr_chunk=SiMemHandler::resize_chunk(curr_chunk,bytes_to_read,TO_START);
+		curr_chunk=SiMemHandler::resize_chunk(curr_chunk,bytes_to_read,TO_START);
 
 	//move the file cursor if required to be on an inter-character boundary
 	move_cursor(curr_chunk->size-bytes_to_read,BACKWARDS);
@@ -282,17 +282,14 @@ SiMemChunk * SiFile::read_data(BlockInt & n_chars)
 
 void SiFile::move_cursor(const Int32 distance,const Int16 dir)
 {
-
 }
 
 void SiFile::resize(const UInt32 size)
 {
-
 }
 
 void SiFile::rename(Char * new_name)
 {
-
 
 }
 void SiFile::delete_file()
@@ -300,7 +297,6 @@ void SiFile::delete_file()
 
 void SiFile::write_direct(const SiMemChunk * const chunk)
 {
- 
 }
 
 Int16 SiFile::read_direct(SiMemChunk * chunk)
@@ -320,25 +316,25 @@ UInt16 SiFile::get_vol_ref()
 
 SiFilePlugin* SiFile::is_encrypted()
 {
-  if(m_location==NULL)
-    return NULL;
+	if(m_location==NULL)
+		return NULL;
 
-  open();
-  set_access_mode(FILE_READ);
-  
-  if(!is_open())
-    {     
-      return NULL;
-    }
-  SiFilePlugin * plug=SiFilePlugin::get_plugin_chain(this);
+	open();
+	set_access_mode(FILE_READ);
+
+	if(!is_open())
+	{
+		return NULL;
+	}
+	SiFilePlugin * plug=SiFilePlugin::get_plugin_chain(this);
 
 
-  return plug;
-  
+	return plug;
+
 
 }
 
 Boolean SiFile::is_read_only()
 {
-  return m_is_read_only;
+	return m_is_read_only;
 }

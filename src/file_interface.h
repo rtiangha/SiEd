@@ -37,44 +37,44 @@ enum {AT_END,AT_START};
 class SiFile
 {
 public:
-	SiFile(const Char * name,const Char * location,const UInt16 volRefNum)  FILE_SECTION;
-	SiFile(const Char * name,const Char * location,const UInt16 volRefNum,const UInt32 size) FILE_SECTION;
+	SiFile(const Char * name,const Char * location,const UInt16 volRefNum)  __attribute__ ((section ("filefns")));
+	SiFile(const Char * name,const Char * location,const UInt16 volRefNum,const UInt32 size) __attribute__ ((section ("filefns")));
 
 	virtual ~SiFile();
-	void add_plugin(SiFilePlugin * trans,const Int16 position)  FILE_SECTION;
-	void delete_plugin(const Int16 position) FILE_SECTION;
-	Char * get_name()  FILE_SECTION;
-	Char * get_location()  FILE_SECTION;
-	virtual UInt32 get_size()  FILE_SECTION;
-	Boolean is_open()  FILE_SECTION;
-	UInt16 get_type()  FILE_SECTION;
+	void add_plugin(SiFilePlugin * trans,const Int16 position)  __attribute__ ((section ("filefns")));
+	void delete_plugin(const Int16 position) __attribute__ ((section ("filefns")));
+	Char * get_name()  __attribute__ ((section ("filefns")));
+	Char * get_location()  __attribute__ ((section ("filefns")));
+	virtual UInt32 get_size()  __attribute__ ((section ("filefns")));
+	Boolean is_open()  __attribute__ ((section ("filefns")));
+	UInt16 get_type()  __attribute__ ((section ("filefns")));
 
-	virtual UInt32 get_mod_time() FILE_SECTION;
-	virtual void open() FILE_SECTION;
-	virtual void close() FILE_SECTION;
-	virtual void set_access_mode(const Int16 mode) FILE_SECTION;
+	virtual UInt32 get_mod_time() __attribute__ ((section ("filefns")));
+	virtual void open() __attribute__ ((section ("filefns")));
+	virtual void close() __attribute__ ((section ("filefns")));
+	virtual void set_access_mode(const Int16 mode) __attribute__ ((section ("filefns")));
 
-	void write_data(const SiMemChunk* const chunk) FILE_SECTION;
-	SiMemChunk* read_data(BlockInt &n_chars) FILE_SECTION;
+	void write_data(const SiMemChunk* const chunk) __attribute__ ((section ("filefns")));
+	SiMemChunk* read_data(BlockInt &n_chars) __attribute__ ((section ("filefns")));
 
-	virtual void move_cursor(const Int32 distance,const Int16 dir) FILE_SECTION;
-	virtual void resize(const UInt32 size) FILE_SECTION;
-	virtual void rename(Char * new_name) FILE_SECTION;
-	virtual void delete_file() FILE_SECTION;
+	virtual void move_cursor(const Int32 distance,const Int16 dir) __attribute__ ((section ("filefns")));
+	virtual void resize(const UInt32 size) __attribute__ ((section ("filefns")));
+	virtual void rename(Char * new_name) __attribute__ ((section ("filefns")));
+	virtual void delete_file() __attribute__ ((section ("filefns")));
 
 	//files actions bypassing plugins
 	//should only be called by plugin classes
-	virtual UInt16 get_vol_ref() FILE_SECTION;
-	virtual void initialise(const Int16 file_mode) FILE_SECTION;
-	virtual Int16 read_direct(SiMemChunk * chunk) FILE_SECTION;
-	virtual void write_direct(const SiMemChunk * const chunk) FILE_SECTION;
-	SiFilePlugin * is_encrypted() FILE_SECTION;
+	virtual UInt16 get_vol_ref() __attribute__ ((section ("filefns")));
+	virtual void initialise(const Int16 file_mode) __attribute__ ((section ("filefns")));
+	virtual Int16 read_direct(SiMemChunk * chunk) __attribute__ ((section ("filefns")));
+	virtual void write_direct(const SiMemChunk * const chunk) __attribute__ ((section ("filefns")));
+	SiFilePlugin * is_encrypted() __attribute__ ((section ("filefns")));
 	static Boolean display_warnings;
 	Boolean is_read_only();
-protected:	
-	void change_name(const Char * new_name)  FILE_SECTION;
-	void change_location(const Char * new_location)  FILE_SECTION;
-	void init(const Char * name,const Char * p_location)  FILE_SECTION;
+protected:
+	void change_name(const Char * new_name)  __attribute__ ((section ("filefns")));
+	void change_location(const Char * new_location)  __attribute__ ((section ("filefns")));
+	void init(const Char * name,const Char * p_location)  __attribute__ ((section ("filefns")));
 
 	UInt32 m_file_size;
 	UInt16 m_open_mode;

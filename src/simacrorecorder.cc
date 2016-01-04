@@ -168,12 +168,13 @@ void SiMacroRecorder::draw_macro_name(const UInt16 num,RectangleType * pos)
 		case 2:
 			WinDrawTruncChars(MACRO_POPUP_TEXT_3,StrLen(MACRO_POPUP_TEXT_3),pos->topLeft.x,pos->topLeft.y,pos->extent.x);
 			break;
-		#ifdef MACRO_POPUP_FOUR_STRINGS
+#ifdef MACRO_POPUP_FOUR_STRINGS
+
 		case 3:
 			WinDrawTruncChars(MACRO_POPUP_TEXT_4,StrLen(MACRO_POPUP_TEXT_4),pos->topLeft.x,pos->topLeft.y,pos->extent.x);
 			break;
-		#endif
-				
+#endif
+
 
 		}
 	}
@@ -304,21 +305,26 @@ ListPtr SiMacroRecorder::initialise_list(FormPtr frm)
 
 Char * SiMacroRecorder::display_macro_select(Int16 &index,Int16 mode)
 {
-  #ifdef LOG_ENTRY
-  log_entry("SiMacroRecorder::display_macro_select 1");
-  #endif
+#ifdef LOG_ENTRY
+	log_entry("SiMacroRecorder::display_macro_select 1");
+#endif
+
 	FormPtr frm=FrmInitForm(MacroForm);
 	list_draw_mode=LONG_MODE;
 	dialog_mode=mode;
 	ListPtr list=initialise_list(frm);
-  #ifdef LOG_ENTRY
-  log_entry("SiMacroRecorder::display_macro_select 2 ");
-  #endif
+#ifdef LOG_ENTRY
+
+	log_entry("SiMacroRecorder::display_macro_select 2 ");
+#endif
+
 	FrmSetEventHandler(frm, (FormEventHandlerPtr) macroEventLoop);
 	ControlType * button=(ControlType*)FrmGetObjectPtr(frm,FrmGetObjectIndex(frm,MacroOK));
-  #ifdef LOG_ENTRY
-  log_entry("SiMacroRecorder::display_macro_select 3");
-  #endif
+#ifdef LOG_ENTRY
+
+	log_entry("SiMacroRecorder::display_macro_select 3");
+#endif
+
 	switch(mode)
 	{
 	case PLAY_MACRO_MODE:
@@ -330,9 +336,10 @@ Char * SiMacroRecorder::display_macro_select(Int16 &index,Int16 mode)
 		FrmSetFocus(frm,FrmGetObjectIndex(frm,MacroField));
 		break;
 	}
-  #ifdef LOG_ENTRY
-  log_entry("SiMacroRecorder::display_macro_select 4");
-  #endif
+#ifdef LOG_ENTRY
+	log_entry("SiMacroRecorder::display_macro_select 4");
+#endif
+
 	UInt16 ret=FrmDoDialog(frm);
 	index=noListSelection;
 	Char * ret_text=NULL;
@@ -372,16 +379,19 @@ void SiMacroRecorder::start_playback()
 
 Boolean SiMacroRecorder::start_record()
 {
-  #ifdef LOG_ENTRY
-  log_entry("SiMacroRecord start record");
-  #endif
+#ifdef LOG_ENTRY
+	log_entry("SiMacroRecord start record");
+#endif
+
 	if(recording||playing)
 		return false;
 	Int16 index;
 	open_macro_database();
-  #ifdef LOG_ENTRY
-  log_entry("SiMacroRecord start record 2");
-  #endif
+#ifdef LOG_ENTRY
+
+	log_entry("SiMacroRecord start record 2");
+#endif
+
 	Char * name=display_macro_select(index,START_RECORD_MODE);
 	if(name==NULL)
 	{
@@ -416,16 +426,19 @@ Boolean SiMacroRecorder::open_macro_database()
 #endif
 
 	if(open_ref!=NULL||playing)
-	  {
+	{
 #ifdef LOG_ENTRY
-	    log_entry("Opening Macro database already open");
+		log_entry("Opening Macro database already open");
 #endif
+
 		return true;
-	  }
+	}
 	LocalID l_id=DmFindDatabase(THE_CARD,SIED_MACRO_DATABASE);
 #ifdef LOG_ENTRY
+
 	log_entry("Opening Macro database 1");
 #endif
+
 	if(l_id==0)
 	{
 #ifdef LOG_ENTRY
@@ -439,14 +452,17 @@ Boolean SiMacroRecorder::open_macro_database()
 
 	open_ref=DmOpenDatabase(THE_CARD,l_id,dmModeReadWrite);
 
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 	ErrFatalDisplayIf(open_ref==NULL,"NULL Macro database ref");
 #endif
 
 	number_macros=DmNumRecords(open_ref);
 #ifdef LOG_ENTRY
+
 	log_entry("Opening Macro database done");
 #endif
+
 	return true;
 }
 
@@ -708,13 +724,15 @@ void SiMacroRecorder::popup_macro_list()
 
 	if(number_macros==0)
 	{
-	  //some languages require four lines to fit the intro text in
-	  //some only require three
+		//some languages require four lines to fit the intro text in
+		//some only require three
 #ifdef MACRO_POPUP_FOUR_STRINGS
 		LstSetListChoices(lst, NULL, 4);
 #else
+
 		LstSetListChoices(lst, NULL, 3);
 #endif
+
 	}
 	else
 		LstSetListChoices(lst, NULL, number_macros);

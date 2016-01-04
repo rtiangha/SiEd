@@ -1,10 +1,10 @@
 //#define REPORT_MEM_USAGE
 //Form control positioning constants for SiEd
-#define SIED_VER_NUMBER 10
+#define SIED_VER_NUMBER 12
 #define SIZE_X 113
 #define SIZE_Y 26
 #define MacPopupLeft 71
-#define MacPopupRight 96
+#define MacPopupRight 90
 #define MacPopupTop 148
 #define MacPopupBottom 158
 
@@ -13,13 +13,13 @@
 #define SIZE_RECT_Y 24
 #define FILENAME_WIDTH (MacPopupLeft-BORDER-11)
 #define LINE_DISPLAY_POS MacPopupRight+3
-#define MAX_LINE_DISPLAY_WIDTH 152 - (LINE_DISPLAY_POS)
+#define MAX_LINE_DISPLAY_WIDTH 134 - (LINE_DISPLAY_POS)
 
 #define MACRO_RECT_X (MacPopupLeft)
-#define MACRO_RECT_Y SiUtility::SCREEN_HEIGHT-12
+#define MACRO_RECT_Y SiUtility::CurrentScreenHeight-12
 #define MACRO_RECT_HEIGHT 11
 #define MACRO_RECT_WIDTH (MacPopupRight-MacPopupLeft)
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 #define TEST_MENU_ITEM MENUITEM "Run Tests" ID 6785
 #else
 #define TEST_MENU_ITEM

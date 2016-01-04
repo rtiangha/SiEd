@@ -30,63 +30,64 @@ enum {SAVE_FILE,OPEN_FILE,MANAGE_FILE};
 #define ENCRYPTED 1
 
 
-void drawFileName(Int16 itemNum, RectangleType * bounds, Char ** itemsText) DIALOG_SECTION;
+void drawFileName(Int16 itemNum, RectangleType * bounds, Char ** itemsText) __attribute__ ((section ("diafns")));
 class SiFileDialog
 {
 public:
-	static void initialise()  DIALOG_SECTION;
-	static SiFile * ShowOpenFileDialog(const char* initial_dir,UInt16 vol) DIALOG_SECTION;
-	static SiFile * ShowSaveFileDialog(const char * initial_filename,const char* initial_dir,const UInt32 size,UInt16 vol) DIALOG_SECTION;
-	static SiFile* ShowFileManageDialog(Char * location,UInt16 vol) DIALOG_SECTION;
-	static Boolean handle_list_select(const Int16 num) DIALOG_SECTION;
-	static Boolean handle_button_press(const UInt16 button) DIALOG_SECTION;
-	static void switch_to_dir(UInt16 num) DIALOG_SECTION;
-	static void move_up_dir() DIALOG_SECTION;
-	static Boolean list_selection_is_file(const UInt16 sel) DIALOG_SECTION;
-	static Boolean get_update_dir_display()  DIALOG_SECTION;
-	static void Beam(const UInt16 id) DIALOG_SECTION;
-	static void exit() DIALOG_SECTION;
-	static void initialise_dir_field() DIALOG_SECTION;
-	static void set_open_field(SiDirNode* node) DIALOG_SECTION;
-	#ifdef TEST_OBJECT_UNIT
-	static void perform_tests() DIALOG_SECTION;
-	#endif
-	
-	//static SiFile* popup_file_list(const Int16 x,const Int16 y) DIALOG_SECTION;
+	static void initialise()  __attribute__ ((section ("diafns")));
+	static SiFile * ShowOpenFileDialog(const char* initial_dir,UInt16 vol) __attribute__ ((section ("diafns")));
+	static SiFile * ShowSaveFileDialog(const char * initial_filename,const char* initial_dir,const UInt32 size,UInt16 vol) __attribute__ ((section ("diafns")));
+	static SiFile* ShowFileManageDialog(Char * location,UInt16 vol) __attribute__ ((section ("diafns")));
+	static Boolean handle_list_select(const Int16 num) __attribute__ ((section ("diafns")));
+	static Boolean handle_button_press(const UInt16 button) __attribute__ ((section ("diafns")));
+	static void switch_to_dir(UInt16 num) __attribute__ ((section ("diafns")));
+	static void move_up_dir() __attribute__ ((section ("diafns")));
+	static Boolean list_selection_is_file(const UInt16 sel) __attribute__ ((section ("diafns")));
+	static Boolean get_update_dir_display()  __attribute__ ((section ("diafns")));
+	static void Beam(const UInt16 id) __attribute__ ((section ("diafns")));
+	static void exit() __attribute__ ((section ("diafns")));
+	static void initialise_dir_field() __attribute__ ((section ("diafns")));
+	static void set_open_field(SiDirNode* node) __attribute__ ((section ("diafns")));
+#ifdef TEST_OBJECT_UNIT
+
+	static void perform_tests() __attribute__ ((section ("diafns")));
+#endif
+
+	//static SiFile* popup_file_list(const Int16 x,const Int16 y) __attribute__ ((section ("diafns")));
 protected:
-	static void check_decrypt_button(const Int16 num) DIALOG_SECTION;
-	static void show_manage_buttons() DIALOG_SECTION;
-	static Boolean check_selected_file() DIALOG_SECTION;
-	static void tidy() DIALOG_SECTION;
-	static void set_working_dir(SiFile * t_file) DIALOG_SECTION;
-	static void make_current_path(Char * path) DIALOG_SECTION;
+	static void check_decrypt_button(const Int16 num) __attribute__ ((section ("diafns")));
+	static void show_manage_buttons() __attribute__ ((section ("diafns")));
+	static Boolean check_selected_file() __attribute__ ((section ("diafns")));
+	static void tidy() __attribute__ ((section ("diafns")));
+	static void set_working_dir(SiFile * t_file) __attribute__ ((section ("diafns")));
+	static void make_current_path(Char * path) __attribute__ ((section ("diafns")));
 	static Char * get_next_name(const Char * location,Int16 & start_pos,const Int16 len);
-	friend void drawFileName(Int16 itemNum, RectangleType * bounds, Char ** itemsText) DIALOG_SECTION;
+	friend void drawFileName(Int16 itemNum, RectangleType * bounds, Char ** itemsText) __attribute__ ((section ("diafns")));
 	static SiDirNode * curr_node ;
-	static void handle_new_dir() DIALOG_SECTION;
-	static Char *show_save_form(const Char * initial_dir,UInt16 vol) DIALOG_SECTION;
-	static UInt16 show_open_form(const Char * initial_dir,UInt16 vol) DIALOG_SECTION;
+	static void handle_new_dir() __attribute__ ((section ("diafns")));
+	static Char *show_save_form(const Char * initial_dir,UInt16 vol) __attribute__ ((section ("diafns")));
+	static UInt16 show_open_form(const Char * initial_dir,UInt16 vol) __attribute__ ((section ("diafns")));
 
-	static void initialise_list(const Char * initial_dir,UInt16 vol) DIALOG_SECTION;
-	static SiDirNode * parse_path(const Char * path,UInt16 vol) DIALOG_SECTION;
+	static void initialise_list(const Char * initial_dir,UInt16 vol) __attribute__ ((section ("diafns")));
+	static SiDirNode * parse_path(const Char * path,UInt16 vol) __attribute__ ((section ("diafns")));
 
-	static void set_dir_field(SiDirNode* node) DIALOG_SECTION;
-	static void populate_node(SiDirNode * node) DIALOG_SECTION;
-	static void make_current_node(SiDirNode* node) DIALOG_SECTION;
-	static void redraw_list() DIALOG_SECTION;
-	static Boolean display_file_select(const fontID font,Char * filename) DIALOG_SECTION;
+	static void set_dir_field(SiDirNode* node) __attribute__ ((section ("diafns")));
+	static void populate_node(SiDirNode * node) __attribute__ ((section ("diafns")));
+	static void make_current_node(SiDirNode* node) __attribute__ ((section ("diafns")));
+	static void redraw_list() __attribute__ ((section ("diafns")));
+	static Boolean display_file_select(const fontID font,Char * filename) __attribute__ ((section ("diafns")));
 
-	static void draw_data_display(UInt16 num) DIALOG_SECTION;
-	static SiDirNode* get_node(const Char * initial_dir,UInt16 vol)  DIALOG_SECTION;
+	static void draw_data_display(UInt16 num) __attribute__ ((section ("diafns")));
+	static SiDirNode* get_node(const Char * initial_dir,UInt16 vol)  __attribute__ ((section ("diafns")));
 
-	static void clear_data_display() DIALOG_SECTION;
-	static Boolean valid_file_name(const char *name) DIALOG_SECTION;
+	static void clear_data_display() __attribute__ ((section ("diafns")));
+	static Boolean valid_file_name(const char *name) __attribute__ ((section ("diafns")));
 
-	static void handle_decrypt_file() DIALOG_SECTION;
-	static void handle_rename() DIALOG_SECTION;
-	static void handle_delete() DIALOG_SECTION;
-	static void show_buttons() DIALOG_SECTION;
-	static void clear_selection() DIALOG_SECTION;
+	static void handle_decrypt_file() __attribute__ ((section ("diafns")));
+	static void handle_rename() __attribute__ ((section ("diafns")));
+	static void handle_delete() __attribute__ ((section ("diafns")));
+	static void show_buttons() __attribute__ ((section ("diafns")));
+	static void clear_selection() __attribute__ ((section ("diafns")));
 	static Boolean update_dir_display;
 	static Int16 file_selected;
 	static Char * curr_path;

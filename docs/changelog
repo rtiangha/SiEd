@@ -1,8 +1,27 @@
 ----------------------------------------
+Release 0.10.0_beta3 27th April 2005
+----------------------------------------
+
+- Editor: Fix crash on font change
+- Editor: Improve preferences handling and reduce storage usage
+
+----------------------------------------
+Release 0.10.0_beta2 10th April 2005
+----------------------------------------
+
+- Editor: Merge new scrollbar and draggable "split view" position from dev branch
+- Display: speed optimisations in redraw: 5-10% faster in editing
+- Display: Register for dynamic input area and respond to resize requests
+- Editor: Fix bug in incremental loading that could lead to unwrapped lines at end of document
+- Editor: Add copy and paste buttons
+- Dialogs: Add "Internal memory" divider in file dialog to make it clear where files are being saved
+- Translations: Merge improved Catalan translation (palmcat.org)
+
+----------------------------------------
 Release 0.9.11 5th March 2005
 ----------------------------------------
 	
-- Dialogs: Correctly cancel open and discard changes if user taps
+- Dialogs: Correctly cancel "open and discard changes" if user taps
 	cancel on save as dialog, rather than discarding changes still
 - Editor: Prevent accidental double tap preventing drag-selecting text
 - Editor: Added read only mode and detection of read only files

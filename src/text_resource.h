@@ -34,8 +34,9 @@
 //if you want add another language, just replace the english words and change the language symbol
 //definition. Leave all the punctuation and numbers unchanged!
 
-#define SIED_VERSION "SiEd 0.9.11"
+#define SIED_VERSION "SiEd 0.10.0_beta3"
 #define READ_ONLY_MODE "Read Only"
+#define MAIN_DIRNODE_TEXT "Main"
 
 #define OUT_OF_MEMORY_WARNING "Editing. Save your work now!" //warning dialog displays "Out of memory while " + this message
 #define DEFAULT_TEXT_EDITOR "Default Editor"
@@ -43,6 +44,8 @@
 #define TEXT_DOCUMENT_ALPHA_CHARS_1 "Alpha. characters:"
 #define TEXT_DOCUMENT_ALPHA_CHARS_2 "(a-Z,0-9)"
 #define CHARS_MESSAGE "(uncounted)"
+#define ESTIMATE_TEXT "(estimate)"
+
 //Untranslated strings
 #define SMALL_CHUNK_TEXT "Small"
 #define MEDIUM_CHUNK_TEXT "Medium"
@@ -240,7 +243,7 @@
 #define FROM_TOP "Du Début"//"From Top"
 #define KEYBOARD "Clavier"
 // short for incremental search in the menu
-#define INC_SEARCH_TEXT "Recherche incrém." //"Inc. Search" 
+#define INC_SEARCH_TEXT "Recherche incrém." //"Inc. Search"
 #define REVERT_FILE "Recharger le fichier?"
 #define REVERT "Recharger"
 #define MESSAGE_REVERT_FILE "Recharger le fichier? Cela supprimera toutes les modifications non sauvegardées"
@@ -727,6 +730,20 @@
 #endif//end spanish
 
 #ifdef LANGUAGE_CATALAN
+#define CHARS_MESSAGE "(no s'han comptat)"
+#define ESTIMATE_TEXT "(estimat)"
+#define SMALL_CHUNK_TEXT "Petit"
+#define MEDIUM_CHUNK_TEXT "Mitg"
+#define LARGE_CHUNK_TEXT "Mitg"
+#define OFF_CHUNK_TEXT "Cap"
+#define DEFAULT_TEXT_EDITOR "Editor per omissió"
+#define INCREMENTAL_FILE_OPEN_MODE "Carrega Arxiu Inicial"
+
+#define READ_ONLY_MODE "Només de lectura"
+#define TAP_TO_OPEN "Clica per obrir"
+#define MAIN_DIRNODE_TEXT "Principal"
+
+#define INC_SEARCH_TEXT "Cerca progressiva"
 #define MACRO_POPUP_FOUR_STRINGS
 //remaining english strings I could find
 #define FILE_TOO_LARGE "L'arxiu és massa gran"
@@ -818,7 +835,7 @@
 #define TEXT_END "Fi"
 #define TEXT_HOME "Inici" //as in beginning of line key
 #define TEXT_EDIT "Edita" //as in the menu title
-#define TEXT_CALCULATE "Calc" //abbreviation for calculate
+#define TEXT_CALCULATE "Calcula" //abbreviation for calculate
 #define MENU_TEXT_STATS "Estadístiques" //abbreviation for statistics
 #define TEXT_DOCUMENT_STATISTICS "Estadí­stiques" //abbreviation for statistics
 #define TEXT_DOCUMENT_CHARS "Caràcters:"
@@ -1689,7 +1706,7 @@
 #define START_RECORD "Çàïèñàòü ìàêðîñ"
 #define RECORD "Çàïèñü"
 #define PLAY "Çàïóñê"
- 
+
 //C++ file text
 #define INVALID_FILE_NAME_TITLE "Íåïðàâèëüíîå èìÿ ôàéëà"
 #define INVALID_FILE_NAME_TEXT "^1 íåïðàâèëüíîå èìÿ ôàéëà."
@@ -2048,7 +2065,7 @@
 #define TEXT_CURSOR "Markör"
 #define TEXT_END "Till slutet"
 #define TEXT_HOME "Till början" // Literally "Too start". "Hem" ("Home") would work too.
-#define TEXT_EDIT "Redigera" 
+#define TEXT_EDIT "Redigera"
 #define TEXT_CALCULATE "Räkna"
 #define TEXT_DOCUMENT_STATISTICS "Dokumentstatistik"
 #define TEXT_DOCUMENT_CHARS "Tecken:"
@@ -2082,7 +2099,7 @@
 #define MATCH_CASE "Små/stora bokstäver"
 #define MATCH_WHOLE_WORD "Hela ordet"
 
-#define REPLACE_ABBR "Ersätt:" 
+#define REPLACE_ABBR "Ersätt:"
 #define REPLACE_ABBR_BUTTON "Ers." // If necessary. Will obviously work above as well.
 #define TEXT_WITH "Med:"
 #define REPLACE_ALL_ABBR "E alla" //abbreviation for replace all

@@ -26,21 +26,21 @@ public:
 	vfs_SiFile(const Char * name,const Char * location,const UInt16 volRefNum);
 	vfs_SiFile(const Char * name,const Char * location,const UInt16 volRefNum,const UInt32 size);
 	virtual ~vfs_SiFile();
-	virtual UInt32 get_mod_time() DIALOG_SECTION;
-	virtual void open() DIALOG_SECTION;
-	virtual void close() DIALOG_SECTION;
-	virtual void set_access_mode(const Int16 mode)  DIALOG_SECTION;
+	virtual UInt32 get_mod_time() __attribute__ ((section ("diafns")));
+	virtual void open() __attribute__ ((section ("diafns")));
+	virtual void close() __attribute__ ((section ("diafns")));
+	virtual void set_access_mode(const Int16 mode)  __attribute__ ((section ("diafns")));
 	virtual void move_cursor(const Int32 distance,const Int16 dir);
-	virtual void resize(const UInt32 size) DIALOG_SECTION;
-	virtual void rename(Char * new_name) DIALOG_SECTION;
-	virtual void delete_file() DIALOG_SECTION;
-	virtual UInt16 get_vol_ref() DIALOG_SECTION;
+	virtual void resize(const UInt32 size) __attribute__ ((section ("diafns")));
+	virtual void rename(Char * new_name) __attribute__ ((section ("diafns")));
+	virtual void delete_file() __attribute__ ((section ("diafns")));
+	virtual UInt16 get_vol_ref() __attribute__ ((section ("diafns")));
 protected:
 	void init();
-	Char * get_file_dir(Char * new_file_name) DIALOG_SECTION;
+	Char * get_file_dir(Char * new_file_name) __attribute__ ((section ("diafns")));
 
-	virtual void write_direct(const SiMemChunk * const chunk) DIALOG_SECTION;
-	virtual Int16 read_direct(SiMemChunk * chunk) DIALOG_SECTION;
+	virtual void write_direct(const SiMemChunk * const chunk) __attribute__ ((section ("diafns")));
+	virtual Int16 read_direct(SiMemChunk * chunk) __attribute__ ((section ("diafns")));
 	UInt16 volRefNum;
 	FileRef file_ref;
 

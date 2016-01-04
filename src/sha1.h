@@ -47,10 +47,10 @@ typedef struct
 	uint8 buffer[64];
 }
 sha1_context;
-void sha1_process( sha1_context *ctx, uint8 data[64] ) DIALOG_SECTION;
-void sha1_starts( sha1_context *ctx ) DIALOG_SECTION;
-void sha1_update( sha1_context *ctx, uint8 *input, uint32 length ) DIALOG_SECTION;
-void sha1_finish( sha1_context *ctx, uint8 digest[20] ) DIALOG_SECTION;
+void sha1_process( sha1_context *ctx, uint8 data[64] ) __attribute__ ((section ("diafns")));
+void sha1_starts( sha1_context *ctx ) __attribute__ ((section ("diafns")));
+void sha1_update( sha1_context *ctx, uint8 *input, uint32 length ) __attribute__ ((section ("diafns")));
+void sha1_finish( sha1_context *ctx, uint8 digest[20] ) __attribute__ ((section ("diafns")));
 
 #endif /* sha1.h */
 

@@ -10,7 +10,7 @@ public:
 	SiMemChunk();
 	virtual ~SiMemChunk();
 	void page_in();
-	void page_out();	
+	void page_out();
 	SiMemChunk * next_chunk();
 	SiMemChunk * prev_chunk();
 	void set_next_chunk(SiMemChunk * chunk);
@@ -26,9 +26,9 @@ protected:
 
 class SiMasterMemChunk: public SiMemChunk
 {
-	public:
-		SiMasterMemChunk();
-		virtual ~SiMasterMemChunk();
-	protected:
-		MemHandle swap_handle;
+public:
+	SiMasterMemChunk();
+	virtual ~SiMasterMemChunk();
+protected:
+	MemHandle swap_handle;
 };

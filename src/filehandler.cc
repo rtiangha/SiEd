@@ -72,19 +72,19 @@ void SiFileHandler::set_curr_file(SiFile * file)
 Boolean SiFileHandler::save_doc_file(Char * name)
 {
 
-  curr_file=new doc_SiFile(name,name,THE_CARD,m_document->get_doc_length());
-  return save_file();
+	curr_file=new doc_SiFile(name,name,THE_CARD,m_document->get_doc_length());
+	return save_file();
 
 }
 Boolean SiFileHandler::open_doc_file(Char * name)
 {
-  SiFile * t_file=new doc_SiFile(name,name,THE_CARD);
-  if(t_file!=NULL)
-    {
-      return open_file(t_file);
-    }
-  else
-    return false;
+	SiFile * t_file=new doc_SiFile(name,name,THE_CARD);
+	if(t_file!=NULL)
+	{
+		return open_file(t_file);
+	}
+	else
+		return false;
 }
 
 
@@ -94,8 +94,10 @@ Boolean SiFileHandler::save_file_as(Char * initial_dir,UInt16 vol)
 	if(m_document->get_doc_length()==0)
 		return false;
 #ifdef LOG_ENTRY
+
 	log_entry("SiFileHandler::save_file_as");
 #endif
+
 	const Char * init_filename=m_document->get_initial_filename();
 	SiFile *t_file=SiFileDialog::ShowSaveFileDialog(init_filename,initial_dir,m_document->get_doc_length(),vol);
 
@@ -113,7 +115,7 @@ Boolean SiFileHandler::save_file_as(Char * initial_dir,UInt16 vol)
 		{
 			DisplayError(UNABLE_TO_SAVE,t_file->get_name());
 			t_file->delete_file();
-//			delete t_file;
+			//			delete t_file;
 			set_curr_file(NULL);
 			return false;
 		}
@@ -131,103 +133,104 @@ Boolean  SiFileHandler::do_open_file(Char * initial_dir,UInt16 vol)
 
 	SiFile * t_file=SiFileDialog::ShowOpenFileDialog(initial_dir,vol);
 	return open_file(t_file);
-	
+
 }
 
 Boolean SiFileHandler::open_file(SiFile * t_file)
 {
 
-  if(t_file!=NULL)
-    {
-      
-      if(!save_if_necessary())
+	if(t_file!=NULL)
 	{
-	  delete t_file;
-	  return false;
-	}
+
+		if(!save_if_necessary())
+		{
+			delete t_file;
+			return false;
+		}
 
 
-      if(!t_file->is_open())
-	{	  
-	  return false;
+		if(!t_file->is_open())
+		{
+			return false;
+		}
+		else
+		{
+
+			set_curr_file(t_file);
+			if(!read_file())
+				return false;
+		}
+
 	}
-      else
-	{
-	  
-	  set_curr_file(t_file);
-	  if(!read_file())
-	    return false;
-	}
-      
-    }
-  
-  return true;
+
+	return true;
 }
 
 Boolean SiFileHandler::save_if_necessary()
 {
-  if (curr_file != NULL)
-    {
-      if(m_document->file_dirty())
+	if (curr_file != NULL)
 	{
-	  if(!save_file())
-	    {
-	      m_editor->stop_waiting();
-	      return false;	     
-	    }
+		if(m_document->file_dirty())
+		{
+			if(!save_file())
+			{
+				m_editor->stop_waiting();
+				return false;
+			}
+		}
 	}
-    }
-  else
-    {
-      if(!check_save_curr_file())
+	else
 	{
-	   m_editor->stop_waiting();
-	   return false;
+		if(!check_save_curr_file())
+		{
+			m_editor->stop_waiting();
+			return false;
+		}
 	}
-    }
-  return true;
+	return true;
 }
 
 Boolean SiFileHandler::do_file_manage(Char * location,UInt16 vol)
 {
-  #ifdef LOG_ENTRY
-  log_entry("file_handler::do_file_manage()");
-  #endif
+#ifdef LOG_ENTRY
+	log_entry("file_handler::do_file_manage()");
+#endif
+
 	SiFile * t_file=SiFileDialog::ShowFileManageDialog(location,vol);
 	if(t_file!=NULL)
-	  return open_file(t_file);
+		return open_file(t_file);
 	else
-	  return false;
+		return false;
 }
 
 Boolean SiFileHandler::check_save_curr_file()
 {
-  if(m_document->file_dirty())
-    {
-      if (FrmAlert(ConfirmOpenOver) == OpenOverSave)
+	if(m_document->file_dirty())
 	{
-	  return save_file_as(NULL,NON_VFS);
+		if (FrmAlert(ConfirmOpenOver) == OpenOverSave)
+		{
+			return save_file_as(NULL,NON_VFS);
+		}
 	}
-    }
-  return true;
+	return true;
 
-  
+
 }
 Boolean SiFileHandler::read_file()
 {
-	#ifdef BENCHMARK_FILE_OPEN
+#ifdef BENCHMARK_FILE_OPEN
 	Int16 start_time=TimGetTicks();
-	#endif
+#endif
 	//clear the state of the editor
 	m_editor->initialise();
 	m_editor->start_waiting();
 	//display the waiting text
 
 	if(!curr_file->is_open())
-	  curr_file->open();
+		curr_file->open();
 	if(!curr_file->is_open())
-	  return false;
-	
+		return false;
+
 	//read the file into memory
 	if(!read_data(curr_file))
 	{
@@ -242,13 +245,14 @@ Boolean SiFileHandler::read_file()
 	m_document->finished_initial_opening();
 	//and we're done
 
-	#ifdef BENCHMARK_FILE_OPEN
+#ifdef BENCHMARK_FILE_OPEN
+
 	Int16 total_time=TimGetTicks()-start_time;
 	Char buff[50];
 	StrPrintF(buff,"Ticks to open file: %i \n",total_time);
 	DisplayError(DEBUG_MESSAGE,buff);
-	#endif
-	
+#endif
+
 	m_editor->stop_waiting();
 	return true;
 }
@@ -287,10 +291,10 @@ Boolean SiFileHandler::read_data(SiFile * src)
 		curr_chunk=src->read_data(n_chars);
 		if(curr_chunk==NULL&&n_chars!=0)
 		{
-		  //not enough memory for the data read in
-		  //so bail now
-		  DisplayError(FILE_TRUNCATION_ERROR,NULL);		  
-		  break;
+			//not enough memory for the data read in
+			//so bail now
+			DisplayError(FILE_TRUNCATION_ERROR,NULL);
+			break;
 		}
 
 		//insert the block into current document
@@ -305,11 +309,12 @@ Boolean SiFileHandler::read_data(SiFile * src)
 			end.line=m_document->get_number_blocks();
 			m_document->made_change(start,end);
 		}
-//		else
-//			m_editor->redraw_chrome(false);
+		//		else
+		//			m_editor->redraw_chrome(false);
 
-	}while(curr_chunk!=NULL);
-	
+	}
+	while(curr_chunk!=NULL);
+
 	m_document->clear_dirty_flag();
 	m_document->clear_opening_file_mode();
 	return true;
@@ -324,27 +329,29 @@ SiFile * SiFileHandler::get_file()
 
 Char * SiFileHandler::get_location()
 {
-  SiFile * f=get_file();
-  if(NULL==f)
-    return NULL;
-  else
-    return f->get_location();
+	SiFile * f=get_file();
+	if(NULL==f)
+		return NULL;
+	else
+		return f->get_location();
 }
 
 UInt16 SiFileHandler::get_vol_ref()
 {
- SiFile * f=get_file();
-  if(NULL==f)
-    return NON_VFS;
-  else
-    return f->get_vol_ref();
+	SiFile * f=get_file();
+	if(NULL==f)
+		return NON_VFS;
+	else
+		return f->get_vol_ref();
 }
 Boolean SiFileHandler::save_file()
 {
 #ifdef LOG_ENTRY
 	log_entry("SiFileHandler::save_file");
 #endif
-
+#ifdef BENCHMARK_FILE_OPEN
+	Int16 start_time=TimGetTicks();
+#endif
 	if(m_document->get_doc_length()==0||curr_file==NULL)
 		return false;
 
@@ -366,7 +373,7 @@ Boolean SiFileHandler::save_file()
 	curr_file->initialise(FILE_WRITE);
 	if(!curr_file->is_open())
 	{
-	//	curr_file=NULL;
+		//	curr_file=NULL;
 		m_editor->stop_waiting();
 		return false;
 	}
@@ -389,17 +396,24 @@ Boolean SiFileHandler::save_file()
 	curr_file->close();
 	m_document->clear_dirty_flag();
 	m_editor->stop_waiting();
+#ifdef BENCHMARK_FILE_OPEN
+
+	Int16 total_time=TimGetTicks()-start_time;
+	Char buff[50];
+	StrPrintF(buff,"Ticks to save file: %i \n",total_time);
+	DisplayError(DEBUG_MESSAGE,buff);
+#endif
 	return true;
 }
 
 void SiFileHandler::delete_scratch_file(const Int16 index)
 {
-	
+
 	char buff[16];
 	StrPrintF(buff, "sied-scratch%u", index);
 	LocalID id=DmFindDatabase(THE_CARD,buff);
 	if(id!=0)
-	  DmDeleteDatabase(THE_CARD,id);
+		DmDeleteDatabase(THE_CARD,id);
 }
 
 void SiFileHandler::write_to_scratch(const Int16 index)
@@ -407,7 +421,7 @@ void SiFileHandler::write_to_scratch(const Int16 index)
 #ifdef LOG_ENTRY
 	log_entry("SiFileHandler::write_to_scratch");
 #endif
-	
+
 	//save to temporary storage when user exits without saving
 	m_temporary_file=true;
 	char buff[16];
@@ -425,6 +439,7 @@ void SiFileHandler::read_from_scratch(const Int16 index)
 #ifdef LOG_ENTRY
 	log_entry("SiFileHandler::read_from_scratch");
 #endif
+
 	m_temporary_file=true;
 	//check if a temporary file has been saved and if so open it
 	char buff[17];
@@ -463,11 +478,11 @@ Boolean SiFileHandler::read_file(Char *file,const Int16 type,UInt16 vol_ref)
 		ret_file=new doc_SiFile(file,file,vol_ref);
 		break;
 
-//obsolete and requiring too much maintenance - removing support
-/*	case SIED_FILE:
-
-		ret_file=new sied_SiFile(file,file,vol_ref);
-		break;*/
+		//obsolete and requiring too much maintenance - removing support
+		/*	case SIED_FILE:
+		 
+				ret_file=new sied_SiFile(file,file,vol_ref);
+				break;*/
 	default:
 		ret_file=NULL;
 		break;
@@ -501,12 +516,12 @@ void SiFileHandler::clear_curr_file()
 }
 Boolean SiFileHandler::file_is_read_only()
 {
-  if(curr_file==NULL)
-    return false;
-  else
-    return curr_file->is_read_only();
+	if(curr_file==NULL)
+		return false;
+	else
+		return curr_file->is_read_only();
 }
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 Boolean SiFileHandler::perform_tests()
 {
 

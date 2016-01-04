@@ -20,7 +20,7 @@
 
 void *operator                new(size_t size)
 {
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 	void * ptr=MemPtrNew(size);
 	ErrFatalDisplayIf(ptr==NULL,"Out of Memory in object allocation");
 	return ptr;

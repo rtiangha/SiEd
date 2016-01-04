@@ -21,37 +21,37 @@
 class SiMacroRecorder
 {
 public:
-	SiMacroRecorder() DIALOG_SECTION;
-	Boolean give_event(EventPtr e) DIALOG_SECTION;
-	~SiMacroRecorder() DIALOG_SECTION;
-	void start_playback() DIALOG_SECTION;
-	Boolean start_record() DIALOG_SECTION;
-	void stop_record() DIALOG_SECTION;
+	SiMacroRecorder() __attribute__ ((section ("diafns")));
+	Boolean give_event(EventPtr e) __attribute__ ((section ("diafns")));
+	~SiMacroRecorder() __attribute__ ((section ("diafns")));
+	void start_playback() __attribute__ ((section ("diafns")));
+	Boolean start_record() __attribute__ ((section ("diafns")));
+	void stop_record() __attribute__ ((section ("diafns")));
 	void draw_macro_name(const UInt16 num,RectangleType * pos);
-	void delete_selected_macro() DIALOG_SECTION;
-	Boolean check_valid() DIALOG_SECTION;
-	void popup_macro_list() DIALOG_SECTION;
+	void delete_selected_macro() __attribute__ ((section ("diafns")));
+	Boolean check_valid() __attribute__ ((section ("diafns")));
+	void popup_macro_list() __attribute__ ((section ("diafns")));
 	Boolean recording;
 	Boolean playing;
 protected:
-	void do_quick_macro(Char * the_char) DIALOG_SECTION;
-	void draw_macro_active_rect() DIALOG_SECTION;
-	void draw_macro_active_char(Char * text) DIALOG_SECTION;
-	void erase_macro_active_rect() DIALOG_SECTION;
-	void prepare_quick_macro() DIALOG_SECTION;
-	Char * display_macro_select(Int16 & index,Int16 mode) DIALOG_SECTION;
-	void close_macro_database() DIALOG_SECTION;
-	Boolean open_macro_database() DIALOG_SECTION;
-	Boolean add_macro_record(Char * name) DIALOG_SECTION;
-	ListPtr initialise_list(FormPtr frm) DIALOG_SECTION;
-	Boolean initialise_macro_record() DIALOG_SECTION;
-	Boolean write_event_to_macro(EventPtr e) DIALOG_SECTION;
-	Boolean handle_tap(EventPtr e) DIALOG_SECTION;
+	void do_quick_macro(Char * the_char) __attribute__ ((section ("diafns")));
+	void draw_macro_active_rect() __attribute__ ((section ("diafns")));
+	void draw_macro_active_char(Char * text) __attribute__ ((section ("diafns")));
+	void erase_macro_active_rect() __attribute__ ((section ("diafns")));
+	void prepare_quick_macro() __attribute__ ((section ("diafns")));
+	Char * display_macro_select(Int16 & index,Int16 mode) __attribute__ ((section ("diafns")));
+	void close_macro_database() __attribute__ ((section ("diafns")));
+	Boolean open_macro_database() __attribute__ ((section ("diafns")));
+	Boolean add_macro_record(Char * name) __attribute__ ((section ("diafns")));
+	ListPtr initialise_list(FormPtr frm) __attribute__ ((section ("diafns")));
+	Boolean initialise_macro_record() __attribute__ ((section ("diafns")));
+	Boolean write_event_to_macro(EventPtr e) __attribute__ ((section ("diafns")));
+	Boolean handle_tap(EventPtr e) __attribute__ ((section ("diafns")));
 
-	Boolean play_macro(Int16 index) DIALOG_SECTION;
-	void copy_event(EventPtr target,EventPtr source) DIALOG_SECTION;
-	void initialise_macro_record(Char * name) DIALOG_SECTION;
-	Boolean open_macro(Int16 index) DIALOG_SECTION;
+	Boolean play_macro(Int16 index) __attribute__ ((section ("diafns")));
+	void copy_event(EventPtr target,EventPtr source) __attribute__ ((section ("diafns")));
+	void initialise_macro_record(Char * name) __attribute__ ((section ("diafns")));
+	Boolean open_macro(Int16 index) __attribute__ ((section ("diafns")));
 	MemHandle macro_handle;
 	Char * macro_name;
 

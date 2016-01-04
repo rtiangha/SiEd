@@ -23,16 +23,16 @@
 #ifndef ERROR_HPP
 #define ERROR_HPP
 enum { FILE_NOT_FOUND, UNABLE_TO_SAVE, FILE_ACCESS_ERROR, OUT_OF_MEMORY, UNKNOWN_FORM, NOT_SUPPORTED, DATABASE_ERROR, SCREEN_ERROR,NOT_IMPLEMENTED, CLIPBOARD_TRUNCATION,INVALID_FILE_NAME,UNABLE_TO_LOAD_LIB,NOT_ENCRYPTED,UNABLE_TO_CREATE_DIR,NO_COMPRESSED_SUPPORT,FILE_TRUNCATION_ERROR,DEBUG_MESSAGE};
-void DisplayError(const UInt16 type, const char *data) UTIL_SECTION;
+void DisplayError(const UInt16 type, const char *data) __attribute__ ((section ("utilfns")));
 #ifdef __DEBUG_LOG__
-void DebugMessage(const char* c) UTIL_SECTION;
+void DebugMessage(const char* c) __attribute__ ((section ("utilfns")));
 
-void DebugNumber(const char * c,const Int32 n) UTIL_SECTION;
+void DebugNumber(const char * c,const Int32 n) __attribute__ ((section ("utilfns")));
 #endif
 
-#ifdef TEST_OBJECTS
-void log_entry(const char * buff) UTIL_SECTION;
-void log_entry_number(const char * buff,const Int32 num) UTIL_SECTION;
+#ifdef DEBUG_LOG
+void log_entry(const char * buff) __attribute__ ((section ("utilfns")));
+void log_entry_number(const char * buff,const Int32 num) __attribute__ ((section ("utilfns")));
 #endif
 
 #endif

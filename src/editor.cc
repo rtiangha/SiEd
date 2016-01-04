@@ -39,6 +39,8 @@
 #include "main.h"
 #include "file_interface.h"
 #include "filedialog.h"
+#include "siscrollbar.h"
+
 #define ctrlKeyMask 32
 #define TEST_CHARS(data_char,term_char) (find_option_match_case?matches=!(data_char==term_char):matches=TxtCaselessCompare((Char*)(&data_char)+(2-d_size),d_size,NULL,(Char*)(&term_char)+(2-t_size),t_size,NULL))
 #define INC_SEARCH_TITLE_TEXT "S:"
@@ -135,7 +137,7 @@ Boolean replaceEventLoop(EventPtr event)
 	}
       break;
     case penDownEvent:
-      if (event->screenY <= SiUtility::SCREEN_HEIGHT)
+      if (event->screenY <= SiUtility::CurrentScreenHeight)
 	{  
 	  g_editor->handle_tap(event->screenX,event->screenY,event->tapCount);
 	}
@@ -182,6 +184,7 @@ SiEditor::SiEditor(const Int16 height, const Int16 top_y,
 	
   m_mini_buffer=NULL;
 
+
   set_sizes(SiPreferencesDatabase::get_font());
 	
   initialise();
@@ -190,12 +193,29 @@ SiEditor::SiEditor(const Int16 height, const Int16 top_y,
   find_option_match_case = false;
   find_option_whole_word = false;
   find_option_from_top=false;
-  if(m_index==0)
-    set_scrollbar(ScrollBarMain);
+
+}
+
+Int16 SiEditor::get_cursor_line() const
+{
+	return cursor_pos.line;
+}
+void SiEditor::show()
+{
+  m_active=true;
+  m_text_view->enable_screen_updates();
+    redraw();
+}
+
+void SiEditor::hide()
+{
+  m_active=false;
+  m_text_view->disable_screen_updates();
 }
 
 void SiEditor::initialise()
 {
+  m_active=true;
   m_text_view->enable_screen_updates();
   mfrm=FrmGetFormPtr(ResformID_text);
   Altfield=(FieldPtr)FrmGetObjectPtr(mfrm,FrmGetObjectIndex(mfrm,AltCharField));
@@ -219,11 +239,31 @@ void SiEditor::initialise()
   m_has_found_term=false;
   check_gsi_status();
 }
+
+Boolean SiEditor::is_focus_tap(const Int16 x,const Int16 y)
+{
+  
+  if(y<=BOTTOM_Y&&y>=TOP_Y)
+    return true;
+  else if(y>=TOP_Y&&y<=BOTTOM_Y+STATUS_BAR_HEIGHT)
+    return !m_text_view->point_in_drag_area(x,y);
+  else
+    return false;
+}
+
 Boolean SiEditor::point_in_drag_area(const Int16 x,const Int16 y)
 {
   //return true if the point is in the area of the status line
   //which will (eventually) allow the user to move the split view divider
-  return m_text_view->point_in_drag_area(x,y);
+  if(m_displaying_dialog)
+    return false;
+  else
+    return m_text_view->point_in_drag_area(x,y);
+}
+
+Int16 SiEditor::get_min_height() const
+{
+  return STATUS_BAR_HEIGHT+m_text_view->get_line_height()*3+2;
 }
 
 void SiEditor::do_replace_find_next()
@@ -576,7 +616,7 @@ void SiEditor::save_preferences()
 	    {
 
 	      SiPreferencesDatabase::set_file_open(m_index,file->get_location(),file->get_vol_ref(),file->get_type());
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 	      if(file->get_location()!=NULL&&SiPreferencesDatabase::get_location_data(m_index)!=NULL)
 		ErrFatalDisplayIf(StrCompare(file->get_location(),SiPreferencesDatabase::get_location_data(m_index))!=0,"Incorrect filename saved");
 #endif
@@ -626,7 +666,7 @@ void SiEditor::read_preferences(Char * file_to_open)
 	}
     
 
-      ensure_tidied(SiPreferencesDatabase::get_top_line(m_index)+COMMAND_LINE+1);
+      ensure_tidied(SiPreferencesDatabase::get_top_line(m_index));
      
       m_text_view->make_top_line(SiPreferencesDatabase::get_top_line(m_index),true);
       update_cursor_pos(SiPreferencesDatabase::get_cursor_pos(m_index),true);	
@@ -647,57 +687,86 @@ void SiEditor::read_preferences(Char * file_to_open)
 
 void SiEditor::give_focus()
 {
-
   FntSetFont(m_font_id);
   m_text_view->notify_got_focus();
 }
 
-void SiEditor::resize(const Int16 height, const Int16 top_y)
+void SiEditor::resize(Int16 height, const Int16 top_y)
 {
-#ifdef TEST_OBJECTS_LOG
-  log_entry_number("resizing ",height);
+ 
+#ifdef DEBUG_LOG
+  log_entry_number("Resizing editor: ",height);
 #endif
   m_text_view->clear_self();
 
+  if(height<get_min_height())
+    height=get_min_height();
+
+  //horrible hack to make the bottom editor
+  //stay flush with the bottom of the screen
+  if(m_index==0)
+    height=m_text_view->get_line_multiple_size(height);
+
+  #ifdef DEBUG
+  ErrFatalDisplayIf(height<get_min_height(),"Resizing too small");
+  #endif
   HEIGHT = height;
   TOP_Y = top_y;
 
   set_viewport();
+
   FormPtr frm=FrmGetFormPtr(ResformID_text);
   m_text_view->notify_size_changed();
-  if(HEIGHT<SiUtility::SCREEN_HEIGHT)
-    {
-      FrmHideObject(frm,FrmGetObjectIndex(frm, ScrollBarMain));
 
-      if(TOP_Y==0)
-	{
-	  set_scrollbar(ScrollBarTop);
-	}
-      else
-	{
-
-	  set_scrollbar(ScrollBarBottom);
-	}
-    }
-  else
+  if(HEIGHT>=SiUtility::CurrentScreenHeight)
     {
-#ifdef TEST_OBJECTS_LOG
-      log_entry("showing main scrollbar");
-#endif
       FrmShowObject(frm,FrmGetObjectIndex(frm,PopupTriggerButton));
-      FrmHideObject(frm,
-		    FrmGetObjectIndex(frm, ScrollBarTop));
-      FrmHideObject(frm,
-		    FrmGetObjectIndex(frm, ScrollBarBottom));
-      set_scrollbar(ScrollBarMain);
     }
-  do_scroll(0,true,false);
 
+  do_scroll(0,true,true);
+
+	//save the current
+  if(m_index==1)
+    SiPreferencesDatabase::set_top_height(HEIGHT);
+
+  move_controls();
+}
+
+void SiEditor::update_control(FormPtr frm,UInt16 id)
+{
+     Coord x,y;
+  UInt16 index=FrmGetObjectIndex(frm,id);
+   FrmGetObjectPosition(frm,index,&x,&y);
+   ControlType * ctl=(ControlType*)FrmGetObjectPtr(frm,index);
+   CtlEraseControl(ctl);
+   FrmSetObjectPosition(frm,index,x,TOP_Y+HEIGHT-STATUS_BAR_HEIGHT);
+}
+
+void SiEditor::move_controls()
+{
+  if(SiUtility::has_dynamic_IA())
+    {
+ 
+      FormPtr frm=FrmGetFormPtr(ResformID_text);
+      if(m_index==1||(m_index==0&&HEIGHT==SiUtility::CurrentScreenHeight))
+	{
+	  update_control(frm,PopupMacroList);
+	  update_control(frm,PopupPositionListBottom);
+	  update_control(frm,PopupTriggerButton);
+	  update_control(frm,PasteButton);
+	  update_control(frm,CopyButton);
+
+	}
+      else if(m_index==0&&HEIGHT<SiUtility::CurrentScreenHeight)
+	{
+	  update_control(frm,PopupPositionListTop);
+
+	}
+    }
 }
 
 void SiEditor::lost_focus()
 {
-
   m_text_view->notify_lost_focus();
 }
 
@@ -768,7 +837,7 @@ void SiEditor::do_scroll(const Int16 amount, Boolean scroll,const Boolean quick)
 
 Boolean SiEditor::ensure_tidied(const Int16 line)
 {
-  return m_document->ensure_tidied(line+COMMAND_LINE);
+  return m_document->ensure_tidied(line+COMMAND_LINE*2);
 }
 
 //!
@@ -1011,7 +1080,7 @@ void SiEditor::set_selection(const Position start,const Position end)
 //!
 void SiEditor::insert_ch_cursor(const WChar c)
 {
-#ifdef TEST_OBJECTS
+#ifdef DEBUG_LOG
   log_entry("SiEditor::insert_ch_cursor");
 #endif
   if(m_incremental_search)
@@ -1118,12 +1187,14 @@ Boolean SiEditor::valid_tap(const Int16 x, const Int16 y)
 //! trying to reslosh entire document in memory
 void SiEditor::reopen()
 {
+  Boolean read_only=m_read_only;
   m_file_handler->write_to_scratch(m_index);
 
   m_file_handler->read_from_scratch(m_index);
 
   set_open_file();
-
+  if(read_only)
+    toggle_read_only_mode();
   update_cursor_pos(cursor_pos,true);
 }
 //!
@@ -1196,13 +1267,38 @@ void SiEditor::handle_commandbar_popup()
 
 }
 
+void SiEditor::handle_control(EventPtr event)
+{
+  switch(event->data.ctlSelect.controlID)
+    {
+    case PasteButton:
+      paste_clipboard();
+      clear_control(PasteButton);
+      break;
+    case CopyButton:
+      copy_selection_to_clipboard();
+      clear_control(CopyButton);
+      break;
+    }
+}
+void SiEditor::clear_control(const UInt16 id)
+{
+  FormPtr frm=FrmGetFormPtr(ResformID_text);
+  ControlType * button=(ControlType *)FrmGetObjectPtr(frm,FrmGetObjectIndex(frm,id));
+  CtlSetValue(button,0);
+}
 void SiEditor::handle_tap(Coord x, Coord y,Int16 n_taps)
 {
 #ifdef LOG_ENTRY
   log_entry("SiEditor::handle_tap");
 #endif
+
   if(ignore_events)
     return;
+  else if(m_text_view->get_scrollbar()->handle_tap(x,y))
+    {
+      return;
+    }
   else if(ui_tap(x,y))
     {
       return;
@@ -1216,6 +1312,7 @@ void SiEditor::handle_tap(Coord x, Coord y,Int16 n_taps)
       stop_inc_search();
       return;
     }
+
   else if(y==0)
     {
       popup_menu();
@@ -1537,7 +1634,7 @@ void SiEditor::show_replace_controls()
   rp.topLeft.x=0;
   rp.topLeft.y=REPLACE_FORM_TOP+1;
   rp.extent.x=SiUtility::SCREEN_WIDTH;
-  rp.extent.y=SiUtility::SCREEN_HEIGHT-REPLACE_FORM_TOP;
+  rp.extent.y=SiUtility::CurrentScreenHeight-REPLACE_FORM_TOP;
   WinEraseRectangle(&rp,0);
 
   FrmHideObject(frm,FrmGetObjectIndex(frm,PopupTriggerButton));  
@@ -1580,25 +1677,24 @@ void SiEditor::hide_replace_controls()
   FrmHideObject(frm,FrmGetObjectIndex(frm,ReplaceReplaceAll));
   FrmHideObject(frm,FrmGetObjectIndex(frm,ReplaceFindNext));
   FrmHideObject(frm,FrmGetObjectIndex(frm,ReplaceCancel));
-
-
-
 }
 
 void SiEditor::resize_for_dialog(const Int16 height)
 {
-  #ifdef TEST_OBJECTS_LOG
+  #ifdef DEBUG_LOG
   log_entry("resize for dialog");
   #endif
+  #ifdef DEBUG
+  ErrFatalDisplayIf(edit_interface==NULL,"NULL edit_interface on resize");
+  #endif
  m_displaying_dialog=true;
-  
+ edit_interface->make_exclusive(this);
   m_initial_height=HEIGHT;
   m_initial_top=TOP_Y;
-
+ 
   resize(height,0);
-  
-  
 }
+
 Boolean SiEditor::is_displaying_dialog() const
 {
   return m_displaying_dialog;
@@ -1607,15 +1703,14 @@ Boolean SiEditor::is_displaying_dialog() const
 void SiEditor::return_to_original_size()
 {
   m_displaying_dialog=false;
-
+  edit_interface->release_exclusive();
   
   resize(m_initial_height,m_initial_top);
-  
+
 }
 
 void SiEditor::do_replace_dialog()
 {
- 
   first_find=true;
   //  set_ignore_events();
   g_editor = this;
@@ -1769,7 +1864,7 @@ void SiEditor::undo()
 }
 void SiEditor::check_gsi_status()
 {
- if(TOP_Y+HEIGHT==SiUtility::SCREEN_HEIGHT)
+ if(TOP_Y+HEIGHT==SiUtility::CurrentScreenHeight)
    {
      //this editor is responsible for the GSI
     GsiEnable(!m_read_only);
@@ -1846,8 +1941,9 @@ void SiEditor::handle_menu_command(const UInt16 id)
       break;
 #ifdef V_KEYBOARD
     case EditMenuKeyboard:
-      if(!ignore_events)
-	m_keyboard->display_virtual_keyboard(kbdAlpha);
+      
+      display_keyboard(kbdAlpha);
+	
       break;
 #endif
     case FileMenuSaveAs:
@@ -2001,6 +2097,16 @@ void SiEditor::do_open_file()
   update_cursor_pos(cursor_pos,false);
   edit_interface->emit_redraw_signal(this);
   clear_ignore_events();
+
+}
+void SiEditor::display_keyboard(const KeyboardType keyb)
+{
+  if(!ignore_events&&m_active)
+    {
+      make_cursor_visible();
+      m_keyboard->display_virtual_keyboard(keyb);
+    }
+      
 }
 
 void SiEditor::do_file_manage()
@@ -2028,6 +2134,7 @@ void SiEditor::do_save_file_as()
       
       edit_interface->emit_redraw_signal(this);
       clear_ignore_events();
+
     }
 }
 
@@ -2204,7 +2311,7 @@ void SiEditor::draw_stats_data()
 
   //Word Count - estimated
   //five characters + 1 space per word on average
-  StrPrintF(buff,"%lu (estimate)",m_document->get_number_chars()/6);
+  StrPrintF(buff,"%lu ESTIMATE_TEXT",m_document->get_number_chars()/6);
   WinDrawTruncChars(buff,StrLen(buff),WORD_COUNT_LEFT,WORD_COUNT_TOP,(158-WORD_COUNT_LEFT));
 
   WinDrawTruncChars(CHARS_MESSAGE,StrLen(CHARS_MESSAGE),WORD_COUNT_LEFT,CHAR_COUNT_TOP,(158-WORD_COUNT_LEFT));
@@ -2336,15 +2443,11 @@ Boolean SiEditor::handle_key(const WChar keycode, const UInt16 modifiers)
       break;
 #ifdef V_KEYBOARD
     case vchrKeyboardAlpha:
-      if(!ignore_events)
-	m_keyboard->display_virtual_keyboard(kbdAlpha);
-
+      display_keyboard(kbdAlpha);
       handled=true;
       break;
     case vchrKeyboardNumeric:
-      if(!ignore_events)
-	m_keyboard->display_virtual_keyboard(kbdNumbersAndPunc);
-
+      display_keyboard(kbdNumbersAndPunc);
       handled=true;
       break;
 #endif
@@ -2471,20 +2574,14 @@ void SiEditor::set_open_file()
   update_cursor_pos(cursor_pos,true);
 }
 
-void SiEditor::set_scrollbar(UInt16 id)
-{
-  FormPtr frm=FrmGetFormPtr(ResformID_text);
-  ScrollBarType* scroll=(ScrollBarType*)FrmGetObjectPtr(frm,FrmGetObjectIndex(frm,id));
-  m_text_view->set_scrollbar(scroll,id);
 
-}
 
 void SiEditor::handle_scroll(const Int16 old_v, const Int16 new_v)
 {
 #ifdef LOG_ENTRY
   log_entry("siEditor::handle_scroll");
 #endif
-  do_scroll(new_v-old_v,false);
+  do_scroll(new_v-old_v,true);
 
 }
 
@@ -2501,7 +2598,7 @@ void SiEditor::update_cursor_pos(const Position& p,const Boolean erase)
 
   cursor_pos=p;
 
-  ensure_tidied(cursor_pos.line+COMMAND_LINE+1);
+  ensure_tidied(cursor_pos.line);
   m_document->make_valid_pos(cursor_pos);
   m_text_view->notify_cursor_moved(cursor_pos,erase);
 }
@@ -2582,7 +2679,7 @@ Boolean SiEditor::point_in_line_number(Coord x,Coord y)
 	{
 	  target=(m_document->get_apparent_number_blocks()/PERCENTAGE_LIST_LENGTH);
 	  orig_number_lines=m_document->get_apparent_number_blocks();
-	  ensure_tidied((target*selection)+COMMAND_LINE);
+	  ensure_tidied((target*selection));
 	}while(m_document->get_apparent_number_blocks()>orig_number_lines);
 		
       m_text_view->make_top_line((m_document->get_apparent_number_blocks()/PERCENTAGE_LIST_LENGTH)*(selection),true);
@@ -2613,7 +2710,6 @@ Boolean SiEditor::perform_benchmark()
 #define TEST_INSERT_TEXT "wxyzw."
 #define TEST_REPLACE_ALL_TEXT "womble"
 
-#define LARGE_INSERT_TEXT "abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg"
 #define TEST_TEXT  "wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. wxyz. "
 
 #define WRAP_WORD "abcdefg "
@@ -2659,7 +2755,13 @@ void SiEditor::test_word_wrap()
 	b=m_document->get_line(1,b_b_index);
 	ErrFatalDisplayIf(b->n_chars!=32,"Incorrect tidy_line_too_long line length,1");
 	m_document->release_line(b_b_index);
-
+	initialise();
+	do_typing();
+	cursor_pos.x=cursor_pos.line=0;
+	update_cursor_pos(cursor_pos,false);
+	Int16 n_blocks=m_document->get_number_blocks();
+	do_typing();
+	ErrFatalDisplayIf(n_blocks*2!=m_document->get_number_blocks(),"Incorrect tidy line too long, long");
 	
 }
 
@@ -2870,6 +2972,8 @@ void SiEditor::test_selection()
     }
   ErrFatalDisplayIf(m_document->get_number_blocks()!=orig_blocks-2,"Incorrect block count on delete selection");
 }
+
+
 void SiEditor::test_reopen()
 {
   initialise();
@@ -3040,17 +3144,17 @@ void SiEditor::test_redraw()
     }
 
   //test resizing
-  for(Int16 i=25;i<160;i+=5)
+  for(Int16 i=get_min_height()+1;i<160;i+=5)
     {
       resize_for_dialog(i);
       ErrFatalDisplayIf(HEIGHT!=i,"Incorrect resize for dialog");
       return_to_original_size();
-      ErrFatalDisplayIf(HEIGHT!=SiUtility::SCREEN_HEIGHT,"Incorrect return to size");
+      ErrFatalDisplayIf(HEIGHT!=SiUtility::CurrentScreenHeight,"Incorrect return to size");
     }
   for(Int16 i=0;i<80;i+=5)
     {
       resize(80,(UInt16)i);
-      ErrFatalDisplayIf(HEIGHT!=80,"Incorrect height on resize");
+      //      ErrFatalDisplayIf(HEIGHT!=80,"Incorrect height on resize");
       ErrFatalDisplayIf(TOP_Y!=i,"Incorrect TOP_Y on resize");
     }
 }
@@ -3064,9 +3168,12 @@ void SiEditor::test_controls()
 }
 Boolean SiEditor::perform_tests()
 {
-  test_file_save();
-  test_word_wrap();
   test_undo();
+  test_word_wrap();
+  m_text_view->perform_tests();
+  test_file_save();
+
+
   test_large_insert();
 
   test_char_insert();
@@ -3079,9 +3186,11 @@ Boolean SiEditor::perform_tests()
   test_controls();
 
   initialise();
-#ifdef TEST_OBJECTS
+#ifdef DEBUG_LOG
   log_entry("SiEditor tests complete");
 #endif
+  m_document->perform_tests();
+  m_text_handler->perform_tests();
   return true;
 
 }
@@ -3146,8 +3255,7 @@ void SiEditor::detailed_benchmarks()
   DisplayError(DEBUG_MESSAGE,buff);
 
   initialise();
-  m_document->perform_tests();
-  m_text_handler->perform_tests();
+
 
 }
 #endif

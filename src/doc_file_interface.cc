@@ -29,7 +29,7 @@ doc_SiFile::doc_SiFile(const Char * name,const Char * location,const UInt16 volR
 	//only attempts to open a file - if it doesn't exist already it won't create it
 
 	curr_record_index=num_records=curr_record_size=curr_record_cursor=0;
-	
+
 	startup();
 	open();
 	m_type=DOC_FILE;
@@ -38,7 +38,7 @@ doc_SiFile::doc_SiFile(const Char * name,const Char * location,const UInt16 volR
 
 doc_SiFile::doc_SiFile(const Char * name,const Char * location,const UInt16 volRefNum,const UInt32 size):pdb_SiFile(name,location,volRefNum,size)
 {
-  //This constructor will open the named file if it exists, otherwise it creates one
+	//This constructor will open the named file if it exists, otherwise it creates one
 
 	header_size=DOC_HEADER_SIZE;
 
@@ -52,7 +52,6 @@ doc_SiFile::doc_SiFile(const Char * name,const Char * location,const UInt16 volR
 
 doc_SiFile::~doc_SiFile()
 {
-
 }
 
 UInt32 doc_SiFile::get_size()
@@ -71,16 +70,16 @@ Boolean doc_SiFile::create_database(const UInt32 size)
 
 		if(err==errNone)
 		{
-		  add_record(DOC_HEADER_SIZE);
-		  
-		  //set the backup bit for the database so that users
-		  //with no conduit can still copy files to the desktop easily
-		  UInt16 attr=dmHdrAttrBackup;
-		  DmSetDatabaseInfo(THE_CARD,m_id,NULL,&attr,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-		  
+			add_record(DOC_HEADER_SIZE);
+
+			//set the backup bit for the database so that users
+			//with no conduit can still copy files to the desktop easily
+			UInt16 attr=dmHdrAttrBackup;
+			DmSetDatabaseInfo(THE_CARD,m_id,NULL,&attr,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+
 		}
 		m_id=DmFindDatabase(THE_CARD,m_name);
-		
+
 		//double check that the file has been created properly
 		if(m_id==0)
 			m_file_open=false;
@@ -98,13 +97,14 @@ void doc_SiFile::set_access_mode(const Int16 mode)
 
 	if(m_file_open)
 	{
-		lock(1);
+		lock(1)
+			;
 	}
 }
 
 void doc_SiFile::resize(const UInt32 size)
 {
-	
+
 	//resize the file so the data section is the size passed in
 	UInt32 actual_size=size+header_size;
 
@@ -156,9 +156,10 @@ void doc_SiFile::resize(const UInt32 size)
 		if(change>0)
 			add_records(change);
 	}
-	#ifdef TEST_OBJECTS
+#ifdef DEBUG
 	ErrFatalDisplayIf(get_size()!=size,"Incorrect resize");
-	#endif
+#endif
+
 	write_header();
 }
 
@@ -202,7 +203,8 @@ void doc_SiFile::resize_last_record(const Int32 size_to_add)
 
 	DmResizeRecord(m_open_ref,num_records-1,new_size);
 	if(re_lock_record!=-1)
-		lock(re_lock_record);
+		lock(re_lock_record)
+			;
 }
 
 Boolean doc_SiFile::add_records(UInt32 size_to_add)
@@ -234,7 +236,7 @@ void doc_SiFile::remove_last_record()
 
 Boolean doc_SiFile::remove_records(UInt32 size_to_remove)
 {
-#ifdef EN_LOG2
+#ifdef TEST_OBJECTS_LOG
 	log_entry_number("removing records size=",size_to_remove);
 #endif
 
@@ -280,12 +282,12 @@ void doc_SiFile::open()
 			{
 				m_cursor=0;
 				if(!read_header())
-				  {
-				    close();
-				    
-				    return;
-				  }
-				
+				{
+					close();
+
+					return;
+				}
+
 			}
 
 		}
@@ -320,31 +322,34 @@ void doc_SiFile::lock(const UInt16 text_record)
 
 void doc_SiFile::write_direct(const SiMemChunk * const chunk)
 {
-  #ifdef TEST_OBJECTS
-  ErrFatalDisplayIf(chunk->size>5000,"Over large block writing");
-  #endif
+#ifdef DEBUG
+	ErrFatalDisplayIf(chunk->size>5000,"Over large block writing");
+#endif
 	//actually do the writing to the DOC file
 	BlockInt amount_written=0;
 	BlockInt amount_to_write=0;
 	while(amount_written<chunk->size)
 	{
-		#ifdef LOG_ENTRY
+#ifdef LOG_ENTRY
 		log_entry_number("amount_written ",amount_written);
 		log_entry_number("write_direct ",chunk->size);
-		#endif
+#endif
+
 		if(curr_record_cursor+chunk->size > curr_record_size+amount_written )
 		{
-		   #ifdef TEST_OBJECTS
-		  ErrFatalDisplayIf(curr_record_size<curr_record_cursor,"Overwriting record");
-		  #endif
+#ifdef DEBUG
+			ErrFatalDisplayIf(curr_record_size<curr_record_cursor,"Overwriting record");
+#endif
+
 			amount_to_write=curr_record_size-curr_record_cursor;
 
 		}
 		else
 		{
-		  #ifdef TEST_OBJECTS
-		  ErrFatalDisplayIf(chunk->size<amount_written,"Overwriting");
-		  #endif
+#ifdef DEBUG
+			ErrFatalDisplayIf(chunk->size<amount_written,"Overwriting");
+#endif
+
 			amount_to_write=chunk->size-amount_written;
 		}
 
@@ -360,7 +365,7 @@ void doc_SiFile::write_direct(const SiMemChunk * const chunk)
 		}
 		else
 		{
-			
+
 			break;
 		}
 
@@ -377,10 +382,11 @@ Int16 doc_SiFile::read_direct(SiMemChunk * chunk)
 
 	while(amount_read<chunk->size)
 	{
-		#ifdef TEST_OBJECTS
+#ifdef DEBUG_LOG
 		log_entry_number("amount_read ",amount_read);
 		log_entry_number("read_direct ",chunk->size);
-		#endif
+#endif
+
 		if(chunk->size+curr_record_cursor> amount_read +curr_record_size )
 		{
 			amount_to_read=curr_record_size-curr_record_cursor;
@@ -403,10 +409,11 @@ Int16 doc_SiFile::read_direct(SiMemChunk * chunk)
 		}
 		else
 		{
-			#ifdef TEST_OBJECTS
+#ifdef DEBUG_LOG
 			if(chunk->size-amount_read>0)
 				log_entry_number("Attempted over read = ",chunk->size-amount_read);
-			#endif
+#endif
+
 			break;
 		}
 	}
@@ -418,13 +425,15 @@ void doc_SiFile::lock_next_record()
 
 	unlock();
 
-	lock(curr_record_index+1);
+	lock(curr_record_index+1)
+		;
 }
 
 Boolean doc_SiFile::read_header()
 {
 
-	lock(HEADER_RECORD);
+	lock(HEADER_RECORD)
+		;
 	header_size=curr_record_size;
 	doc_header header;
 	SiMemChunk temp_chunk;
@@ -434,12 +443,13 @@ Boolean doc_SiFile::read_header()
 
 	move_cursor(header_size,MOVE_TO);
 	unlock();
-	#ifdef TEST_OBJECTS
+#ifdef DEBUG_LOG
+
 	log_entry("Reading DOC Header");
 	log_entry_number("number records ",header.num_records);
 	log_entry_number("header_size ",header.size);
 	log_entry_number("m_file_size ",get_size());
-	#endif
+#endif
 	//No support for compressed DOC files yet
 	//TODO: IMPLEMENT SUPPORT!
 	temp_chunk.mem_ptr=NULL;
@@ -452,14 +462,14 @@ Boolean doc_SiFile::read_header()
 		num_records=header.num_records+1;
 
 	if(header.size<=get_size())
-	  m_file_size=header.size+header_size;
+		m_file_size=header.size+header_size;
 	if(header.version==COMPRESSED_DOC)
 	{
-	  if(SiFile::display_warnings)
-	    {
-	      DisplayError(NO_COMPRESSED_SUPPORT,get_name());
-	    }
-	  return false;
+		if(SiFile::display_warnings)
+		{
+			DisplayError(NO_COMPRESSED_SUPPORT,get_name());
+		}
+		return false;
 	}
 
 	return true;
@@ -473,7 +483,8 @@ Boolean doc_SiFile::write_header()
 		header_size=DOC_HEADER_SIZE;
 
 	}
-	lock(HEADER_RECORD);
+	lock(HEADER_RECORD)
+		;
 	doc_header header;
 	header.size=get_size();
 	header.spare=0;
@@ -482,12 +493,14 @@ Boolean doc_SiFile::write_header()
 	header.max_rec_size=RECORD_SIZE;
 
 	header.curr_pos=0;
-#ifdef TEST_OBJECTS
+#ifdef DEBUG_LOG
+
 	log_entry("Writing DOC Header");
 	log_entry_number("number records ",header.num_records);
 	log_entry_number("header_size ",header.size);
 	log_entry_number("m_file_size ",get_size());
-	#endif
+#endif
+
 	SiMemChunk temp_chunk;
 	temp_chunk.mem_ptr=(Char*)&header;
 	temp_chunk.size=sizeof(doc_header);

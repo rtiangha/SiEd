@@ -104,10 +104,9 @@ void SiKeyboard::set_key_selection()
 
 void SiKeyboard::display_keyboard(UInt16 dialog)
 {
-  m_editor->make_cursor_visible();
-  current_keyboard=dialog;
-  FrmGotoForm(dialog);
-  set_key_selection();
+	current_keyboard=dialog;
+	FrmGotoForm(dialog);
+	set_key_selection();
 }
 
 
@@ -116,49 +115,43 @@ Boolean SiKeyboard::handle_keyboard_keypress(EventPtr e)
 	UInt16 id=e->data.ctlSelect.controlID;
 
 	Boolean handled=false;
-	if(id==Num_select)
-	{
-		if(current_keyboard!=NumKeyboardDialog)
-		{
-			display_keyboard(NumKeyboardDialog);
-			handled=true;
-		}
-	}
-	else if(id==Alpha_select)
-	{
-		if(current_keyboard!=AlphaKeyboardDialog )
-		{
-			display_keyboard(AlphaKeyboardDialog);
-			handled=true;
-		}
-	}
-	else if(id==Intl_select)
-	{
-		if(current_keyboard!=IntlKeyboardDialog)
-		{
-			display_keyboard(IntlKeyboardDialog);
-			handled=true;
-		}
-	}
-	else if(id==CapsKey)
-	{
+	switch(id)
+	  {
+	  case Num_select:
+	    if(current_keyboard!=NumKeyboardDialog)
+	      {
+		display_keyboard(NumKeyboardDialog);
+		handled=true;
+	      }
+	    break;
+	  case Alpha_select:
+	    if(current_keyboard!=AlphaKeyboardDialog )
+	      {
+		display_keyboard(AlphaKeyboardDialog);
+		handled=true;
+	      }
+	    break;
+	  case Intl_select:
+	    if(current_keyboard!=IntlKeyboardDialog)
+	      {
+		display_keyboard(IntlKeyboardDialog);
+		handled=true;
+	      }
+	    break;
+	  case CapsKey:
 		toggle_caps_status();
 		handled=true;
-
-	}
-	else if(id==ShiftKey)
-	{
+		break;
+	  case ShiftKey:
 		toggle_caps_status();
 		shift_pressed=!shift_pressed;
 		handled=true;
-	}
-	else if(id==KeyboardDoneButton)
-	{
+		break;
+	  case KeyboardDoneButton:
 		exit_keyboard_dialog();
 		handled=true;
-	}
-	else
-	{
+		break;
+	  default:
 		WChar the_char;
 		FormPtr frm=FrmGetFormPtr(current_keyboard);
 		ControlType * button=(ControlType *)FrmGetObjectPtr(frm,FrmGetObjectIndex(frm,id));
@@ -204,6 +197,7 @@ Boolean SiKeyboard::handle_keyboard_keypress(EventPtr e)
 		}
 
 		handled=true;
+		break;
 	}
 
 	return handled;
@@ -257,17 +251,17 @@ void SiKeyboard::display_virtual_keyboard(KeyboardType kbd)
 }
 void SiKeyboard::set_current_keyboard(const UInt16 keyb)
 {
-  if(current_keyboard!=0||keyb==0)
-    return;
+	if(current_keyboard!=0||keyb==0)
+		return;
 
-  current_keyboard=keyb;
+	current_keyboard=keyb;
 
-  m_editor->resize_for_dialog(KEYBOARD_TOP-1);
-  
-  m_editor->redraw();
-  
-  g_keyboard=this;
-  popup_form(current_keyboard);
+	m_editor->resize_for_dialog(KEYBOARD_TOP-1);
+
+	m_editor->redraw();
+
+	g_keyboard=this;
+	popup_form(current_keyboard);
 }
 
 void SiKeyboard::do_keyboard(KeyboardType kbd)
@@ -290,19 +284,19 @@ void SiKeyboard::do_keyboard(KeyboardType kbd)
 
 	//then actually display the keyboard
 	popup_form(current_keyboard);
-	
+
 }
 void SiKeyboard::popup_form(const Int16 form)
 {
-  RectangleType rp;
-  rp.topLeft.x=0;
-  rp.topLeft.y=KEYBOARD_TOP;
-  rp.extent.x=SiUtility::SCREEN_WIDTH;
-  rp.extent.y=SiUtility::SCREEN_HEIGHT-KEYBOARD_TOP;
-  WinEraseRectangle(&rp,0);
-  FrmPopupForm(form);
+	RectangleType rp;
+	rp.topLeft.x=0;
+	rp.topLeft.y=KEYBOARD_TOP;
+	rp.extent.x=SiUtility::SCREEN_WIDTH;
+	rp.extent.y=SiUtility::CurrentScreenHeight-KEYBOARD_TOP;
+	WinEraseRectangle(&rp,0);
+	FrmPopupForm(form);
 }
 UInt16 SiKeyboard::get_current_keyboard() const
 {
-  return (current_keyboard);
+	return (current_keyboard);
 }

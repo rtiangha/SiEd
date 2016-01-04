@@ -5,10 +5,10 @@
 class updir_SiDirNode : public SiDirNode
 {
 public:
-	updir_SiDirNode() DIALOG_SECTION;
-	~updir_SiDirNode() DIALOG_SECTION;
-	virtual SiFile * get_file(Char * filename) DIALOG_SECTION;
-	virtual SiFile * create_file(Char * filename,UInt32 size) DIALOG_SECTION;
-	virtual SiDirNode* get_copy() DIALOG_SECTION;
+	updir_SiDirNode() __attribute__ ((section ("diafns")));
+	~updir_SiDirNode() __attribute__ ((section ("diafns")));
+	virtual SiFile * get_file(Char * filename) __attribute__ ((section ("diafns")));
+	virtual SiFile * create_file(Char * filename,UInt32 size) __attribute__ ((section ("diafns")));
+	virtual SiDirNode* get_copy() __attribute__ ((section ("diafns")));
 };
 #endif

@@ -61,17 +61,17 @@ void vfs_SiFile::open()
 		else
 		{
 			VFSFileSize(file_ref,&m_file_size);
-			
+
 			//check for read only
 			UInt32 attr;
 			VFSFileGetAttributes(file_ref,&attr);
 			if(attr&vfsFileAttrReadOnly)
-			  m_is_read_only=true;
+				m_is_read_only=true;
 			VolumeInfoType vol_info;
 			VFSVolumeInfo(volRefNum,&vol_info);
 
 			if(vol_info.attributes&vfsVolumeAttrReadOnly)
-			  m_is_read_only=true;
+				m_is_read_only=true;
 			m_file_open=true;
 			m_cursor=0;
 		}
@@ -119,7 +119,7 @@ void vfs_SiFile::set_access_mode(const Int16 mode)
 
 void vfs_SiFile::write_direct(const SiMemChunk * const chunk)
 {
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 	ErrFatalDisplayIf(!m_file_open,"Writing to closed VFS file");
 #endif
 
@@ -129,9 +129,10 @@ void vfs_SiFile::write_direct(const SiMemChunk * const chunk)
 
 Int16 vfs_SiFile::read_direct(SiMemChunk * chunk)
 {
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 	ErrFatalDisplayIf(!m_file_open,"Reading from closed VFS file");
 #endif
+
 	UInt32 bytes_read;
 	VFSFileRead(file_ref,chunk->size,chunk->mem_ptr,&bytes_read);
 	m_cursor+=bytes_read;
@@ -184,8 +185,8 @@ void vfs_SiFile::rename(Char * new_name)
 	Err err=VFSFileRename(volRefNum,m_location,new_name);
 	if(err!=errNone)
 	{
-	  if(display_warnings)
-	    DisplayError(FILE_ACCESS_ERROR,new_name);
+		if(display_warnings)
+			DisplayError(FILE_ACCESS_ERROR,new_name);
 		return;
 	}
 	MemPtrFree(m_name);
@@ -210,7 +211,7 @@ Char * vfs_SiFile::get_file_dir(Char * new_file_name)
 
 	MemMove(dir,m_location,path_length);
 	StrCopy(dir+path_length,new_file_name);
-	
+
 	return dir;
 }
 

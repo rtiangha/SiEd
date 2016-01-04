@@ -32,40 +32,41 @@ Boolean filelistloop(EventPtr event);
 class SiFileHandler
 {
 public:
-	SiFileHandler(SiEditor * editor,SiDocument * doc) FILE_SECTION;
-	~SiFileHandler() FILE_SECTION;
-	void write_to_scratch(const Int16 index) FILE_SECTION;
-	//SiFile* save_file() FILE_SECTION;
+	SiFileHandler(SiEditor * editor,SiDocument * doc) __attribute__ ((section ("filefns")));
+	~SiFileHandler() __attribute__ ((section ("filefns")));
+	void write_to_scratch(const Int16 index) __attribute__ ((section ("filefns")));
+	//SiFile* save_file() __attribute__ ((section ("filefns")));
 
-	Boolean do_open_file(Char * initial_dir,UInt16 vol) FILE_SECTION;
-	Boolean do_file_manage(Char * location,UInt16 vol) FILE_SECTION;
-	void clear_open_filename() FILE_SECTION;
-	Boolean open_saved_filename() FILE_SECTION;
-	Boolean save_file_as(Char * initial_dir,UInt16 vol) FILE_SECTION;
-	Boolean save_doc_file(Char * name) FILE_SECTION;
-	Boolean open_doc_file(Char * name) FILE_SECTION;
-	static Boolean valid_file_name(const char *name)  FILE_SECTION;
-	void read_from_scratch(const Int16 index) FILE_SECTION;
-	Boolean save_file() FILE_SECTION;
-	Boolean read_file() FILE_SECTION;
-	Boolean read_file(Char *file,const Int16 type,UInt16 vol_ref) FILE_SECTION;
-	SiFile* get_file() FILE_SECTION;
-	Char * get_location() FILE_SECTION;
-	UInt16 get_vol_ref() FILE_SECTION;
-	void clear_curr_file() FILE_SECTION;
-	void delete_scratch_file(const Int16 index) FILE_SECTION;
-	Boolean file_is_read_only() FILE_SECTION;
-#ifdef TEST_OBJECTS
-	Boolean perform_tests() FILE_SECTION;
+	Boolean do_open_file(Char * initial_dir,UInt16 vol) __attribute__ ((section ("filefns")));
+	Boolean do_file_manage(Char * location,UInt16 vol) __attribute__ ((section ("filefns")));
+	void clear_open_filename() __attribute__ ((section ("filefns")));
+	Boolean open_saved_filename() __attribute__ ((section ("filefns")));
+	Boolean save_file_as(Char * initial_dir,UInt16 vol) __attribute__ ((section ("filefns")));
+	Boolean save_doc_file(Char * name) __attribute__ ((section ("filefns")));
+	Boolean open_doc_file(Char * name) __attribute__ ((section ("filefns")));
+	static Boolean valid_file_name(const char *name)  __attribute__ ((section ("filefns")));
+	void read_from_scratch(const Int16 index) __attribute__ ((section ("filefns")));
+	Boolean save_file() __attribute__ ((section ("filefns")));
+	Boolean read_file() __attribute__ ((section ("filefns")));
+	Boolean read_file(Char *file,const Int16 type,UInt16 vol_ref) __attribute__ ((section ("filefns")));
+	SiFile* get_file() __attribute__ ((section ("filefns")));
+	Char * get_location() __attribute__ ((section ("filefns")));
+	UInt16 get_vol_ref() __attribute__ ((section ("filefns")));
+	void clear_curr_file() __attribute__ ((section ("filefns")));
+	void delete_scratch_file(const Int16 index) __attribute__ ((section ("filefns")));
+	Boolean file_is_read_only() __attribute__ ((section ("filefns")));
+#ifdef DEBUG
+
+	Boolean perform_tests() __attribute__ ((section ("filefns")));
 #endif
 protected:
-	Boolean open_file(SiFile* t_file) FILE_SECTION;
-	Boolean check_save_curr_file() FILE_SECTION;
-	void set_curr_file(SiFile * file) FILE_SECTION;
-	Char * strip_path(Char * location) FILE_SECTION;
-	Boolean read_data(SiFile * src) FILE_SECTION;
-	Boolean save_if_necessary() FILE_SECTION;
-	Boolean handle_button_event(const UInt16 button) FILE_SECTION;
+	Boolean open_file(SiFile* t_file) __attribute__ ((section ("filefns")));
+	Boolean check_save_curr_file() __attribute__ ((section ("filefns")));
+	void set_curr_file(SiFile * file) __attribute__ ((section ("filefns")));
+	Char * strip_path(Char * location) __attribute__ ((section ("filefns")));
+	Boolean read_data(SiFile * src) __attribute__ ((section ("filefns")));
+	Boolean save_if_necessary() __attribute__ ((section ("filefns")));
+	Boolean handle_button_event(const UInt16 button) __attribute__ ((section ("filefns")));
 
 	Int16 file_selected ;
 	SiEditor * m_editor ;

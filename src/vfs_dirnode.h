@@ -22,13 +22,13 @@
 class vfs_SiDirNode : public SiDirNode
 {
 public:
-	vfs_SiDirNode(Char * filename) DIALOG_SECTION;
+	vfs_SiDirNode(Char * filename) __attribute__ ((section ("diafns")));
 
-	virtual SiFile * get_file(Char * name) DIALOG_SECTION;
-	virtual SiFile * create_file(Char * name,UInt32 size) DIALOG_SECTION;
-	virtual void populate() DIALOG_SECTION;
-	virtual UInt32 get_file_size() DIALOG_SECTION;
-	virtual UInt32 get_file_date() DIALOG_SECTION;
+	virtual SiFile * get_file(Char * name) __attribute__ ((section ("diafns")));
+	virtual SiFile * create_file(Char * name,UInt32 size) __attribute__ ((section ("diafns")));
+	virtual void populate() __attribute__ ((section ("diafns")));
+	virtual UInt32 get_file_size() __attribute__ ((section ("diafns")));
+	virtual UInt32 get_file_date() __attribute__ ((section ("diafns")));
 };
 
 #endif

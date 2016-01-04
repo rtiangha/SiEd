@@ -10,6 +10,10 @@ Boolean compare_less(const SiDirNode * lhs,const SiDirNode * rhs)
 		return true;
 	else if(lhs->get_position_index()>rhs->get_position_index())
 		return false;
+	else if(lhs->name==NULL)
+	  return false;
+	else if(rhs->name==NULL)
+	  return true;
 	else if(StrCompare(lhs->name,rhs->name)<0)
 		return true;
 	else
@@ -24,7 +28,12 @@ Boolean compare_less_equal(const SiDirNode * lhs,const SiDirNode * rhs)
 	}
 	else if(lhs->get_position_index()==rhs->get_position_index())
 	{
-	  return (StrCompare(lhs->name,rhs->name)<=0);
+	  if(lhs->name==NULL)
+	    return false;
+	  else if(rhs->name==NULL)
+	    return true;
+	  else
+		return (StrCompare(lhs->name,rhs->name)<=0);
 	}
 	else
 	{
@@ -82,48 +91,50 @@ SiDirNode::SiDirNode(Char * p_name,const UInt16 p_number_children)
 
 Boolean SiDirNode::is_encrypted()
 {
-  if(!(options&DISPLAY_FILENAME)||name==NULL)
-    return false;
-  
-  if(m_is_encrypted==NONE)
-    {
-      SiFile::display_warnings=false;
-      SiFile * file=get_file(NULL);
-      if(file!=NULL)
-	{	 
-	  SiFilePlugin * plug=file->is_encrypted();
-	  if(plug!=NULL)
-	    {
-	      m_is_encrypted=true;
-	      delete plug;
-	    }
-	  else
-	    m_is_encrypted=false;
-	  delete file;
-	  SiFile::display_warnings=true;
-	  return m_is_encrypted;
+	if(!(options&DISPLAY_FILENAME)||name==NULL)
+		return false;
+
+	if(m_is_encrypted==NONE)
+	{
+		SiFile::display_warnings=false;
+		SiFile * file=get_file(NULL);
+		if(file!=NULL)
+		{
+			SiFilePlugin * plug=file->is_encrypted();
+			if(plug!=NULL)
+			{
+				m_is_encrypted=true;
+				delete plug;
+			}
+			else
+				m_is_encrypted=false;
+			delete file;
+			SiFile::display_warnings=true;
+			return m_is_encrypted;
+		}
+		else
+			return false;
 	}
-      else
-	return false;
-    }
-  else
-    {
-      return m_is_encrypted;
-    }
+	else
+	{
+		return m_is_encrypted;
+	}
 }
 SiFile * SiDirNode::get_file(Char * filename)
 {
-#ifdef TEST_OBJECTS
-  filename=NULL;
+#ifdef DEBUG
+	filename=NULL;
 #endif
+
 	return NULL;
 }
 SiFile * SiDirNode::create_file(Char * filename,UInt32 size)
 {
-#ifdef TEST_OBJECTS
-  filename=NULL;
-  size=0;
+#ifdef DEBUG
+	filename=NULL;
+	size=0;
 #endif
+
 	return NULL;
 }
 void SiDirNode::flush_children()
@@ -206,6 +217,7 @@ SiDirNode * SiDirNode::get_copy()
 #ifdef EN_LOG
 	DisplayError(UNABLE_TO_SAVE,"Called wrong copy");
 #endif
+
 	return NULL;
 }
 void SiDirNode::tidy()
@@ -253,6 +265,7 @@ Int16 SiDirNode::get_position_index() const
 //add a child node to this node (eg a file in a directory node)
 SiDirNode *SiDirNode::add_child(SiDirNode * child)
 {
+
 	child->parent=this;
 	if(child_nodes!=NULL)
 	{
@@ -263,10 +276,12 @@ SiDirNode *SiDirNode::add_child(SiDirNode * child)
 	{
 		children_handle=MemHandleNew(sizeof(SiDirNode*));
 	}
+
 	child_nodes=(SiDirNode**)MemHandleLock(children_handle);
 	child_nodes[number_children]=child;
 
 	++number_children;
+
 	return child_nodes[number_children-1];
 }
 
@@ -282,24 +297,24 @@ void SiDirNode::draw_self(UInt16 x,const UInt16 y,const UInt16 max_width)
 {
 	MemHandle hRsc=NULL;
 	BitmapType* bitmapP=NULL;
-       
+
 	if(is_encrypted())
-	  {	    
-	    hRsc = DmGetResource(bitmapRsc,PADLOCK_IMAGE_ID);
-	    if(hRsc!=NULL)
-	      {
-		bitmapP = (BitmapType*) MemHandleLock(hRsc);
-		if(bitmapP!=NULL)
-		  {
-		    WinDrawBitmap(bitmapP,3,y+2);
-		    x+=PADLOCK_BITMAP_WIDTH+3;
-		    MemHandleUnlock(hRsc);
-		  }
-		DmReleaseResource(hRsc);
-	      }	    
-	    hRsc=NULL;
-	    bitmapP=NULL;
-	  }
+	{
+		hRsc = DmGetResource(bitmapRsc,PADLOCK_IMAGE_ID);
+		if(hRsc!=NULL)
+		{
+			bitmapP = (BitmapType*) MemHandleLock(hRsc);
+			if(bitmapP!=NULL)
+			{
+				WinDrawBitmap(bitmapP,3,y+2);
+				x+=PADLOCK_BITMAP_WIDTH+3;
+				MemHandleUnlock(hRsc);
+			}
+			DmReleaseResource(hRsc);
+		}
+		hRsc=NULL;
+		bitmapP=NULL;
+	}
 
 	if(image_id!=0)
 	{
@@ -317,11 +332,11 @@ void SiDirNode::draw_self(UInt16 x,const UInt16 y,const UInt16 max_width)
 	}
 
 	if(name!=NULL)
-	  {
-	    FontID prev_font=FntSetFont(m_font);
-	    WinDrawTruncChars(name,StrLen(name), x+x_offset,y,max_width-x_offset-1-x);	   
-	    FntSetFont(prev_font);
-	  }
+	{
+		FontID prev_font=FntSetFont(m_font);
+		WinDrawTruncChars(name,StrLen(name), x+x_offset,y,max_width-x_offset-1-x);
+		FntSetFont(prev_font);
+	}
 
 
 }
@@ -398,43 +413,43 @@ void SiDirNode::sort_partition(SiDirNode** partition,const UInt16 begin,const UI
 #endif
 
 	if(end>begin)
-	  {
-	    UInt16 l=begin+1;
-	    UInt16 r=end;
+	{
+		UInt16 l=begin+1;
+		UInt16 r=end;
 
-	    SiDirNode *pivot_node=partition[begin]->get_copy();
-	    while(l<=r)
-	      {
-		if(compare_less_equal(partition[l],pivot_node))
-		  {
-		    ++l;
-		  }
-		else
-		  {
-		    swap_elements(partition,l,r);
-		    --r;
-		  }
-	      }
+		SiDirNode *pivot_node=partition[begin]->get_copy();
+		while(l<=r)
+		{
+			if(compare_less_equal(partition[l],pivot_node))
+			{
+				++l;
+			}
+			else
+			{
+				swap_elements(partition,l,r);
+				--r;
+			}
+		}
 
-	    //delete the node copy as soon as possible
-	    //to save memory
-	    delete pivot_node;
-	    --l;
-	    ++r;
-	    swap_elements(partition,begin,l);
+		//delete the node copy as soon as possible
+		//to save memory
+		delete pivot_node;
+		--l;
+		++r;
+		swap_elements(partition,begin,l);
 
-	    //recursively sort left+right partitions
-	    sort_partition(partition,begin,l);
-	    sort_partition(partition,r,end);
+		//recursively sort left+right partitions
+		sort_partition(partition,begin,l);
+		sort_partition(partition,r,end);
 
-	  }
+	}
 
 }
 
 void SiDirNode::sort_children()
 {
-  if(child_nodes!=NULL)
-    sort_partition(child_nodes,0,number_children-1);
+	if(child_nodes!=NULL)
+		sort_partition(child_nodes,0,number_children-1);
 }
 
 #ifdef TEST_OBJECT_UNIT
@@ -445,67 +460,67 @@ Char * test_names[8]={"One","Two","Three","Four","one","two","three","four"};
 void SiDirNode::perform_tests()
 {
 
-  SiDirNode * child=NULL;
-  UInt16 rem;
+	SiDirNode * child=NULL;
+	UInt16 rem;
 
-  Char buff[50];
-  for(UInt16 i=0;i<NUMBER_TEST_CHILDREN;++i)
-    {
-      rem=(i%8);
-
-      StrCopy(buff,test_names[rem]);
-      StrPrintF(buff+StrLen(test_names[rem]),"_%i",i);
-
-      child=new vfsfile_SiDirNode(buff);
-      
-      add_child(child);
-      ErrFatalDisplayIf(number_children!=i+1,"Incorrect child count, SiDirNode");
-    }
-
-  sort_children();
-  ErrFatalDisplayIf(number_children!=NUMBER_TEST_CHILDREN,"Incorrect number of children after sort");
-  SiDirNode* next_child;
-
-  for(UInt16 i=0;i<NUMBER_TEST_CHILDREN-1;++i)
-    {
-      child=child_nodes[i];
-      next_child=child_nodes[i+1];
-
-      if(StrCompare(child->name,next_child->name)>0)
+	Char buff[50];
+	for(UInt16 i=0;i<NUMBER_TEST_CHILDREN;++i)
 	{
-	  DisplayError(DEBUG_MESSAGE,child->name);
-	  DisplayError(DEBUG_MESSAGE,next_child->name);
-	  ErrFatalDisplay("Incorrect Sort Order");
+		rem=(i%8);
+
+		StrCopy(buff,test_names[rem]);
+		StrPrintF(buff+StrLen(test_names[rem]),"_%i",i);
+
+		child=new vfsfile_SiDirNode(buff);
+
+		add_child(child);
+		ErrFatalDisplayIf(number_children!=i+1,"Incorrect child count, SiDirNode");
 	}
-    }
 
-  flush_children();
+	sort_children();
+	ErrFatalDisplayIf(number_children!=NUMBER_TEST_CHILDREN,"Incorrect number of children after sort");
+	SiDirNode* next_child;
 
-  ErrFatalDisplayIf(number_children!=0,"Incorrect flush_children");
-  for(UInt16 i=0;i<NUMBER_TEST_CHILDREN;++i)
-    {
-      rem=(i%8);
-     
-      StrCopy(buff,test_names[rem]);
-      StrPrintF(buff+StrLen(test_names[rem]),"_%i",i);
+	for(UInt16 i=0;i<NUMBER_TEST_CHILDREN-1;++i)
+	{
+		child=child_nodes[i];
+		next_child=child_nodes[i+1];
 
-      child=new doc_SiDirNode(buff);
-      
-      add_child(child);
-      ErrFatalDisplayIf(number_children!=i+1,"Incorrect child count, SiDirNode");
-    }
+		if(StrCompare(child->name,next_child->name)>0)
+		{
+			DisplayError(DEBUG_MESSAGE,child->name);
+			DisplayError(DEBUG_MESSAGE,next_child->name);
+			ErrFatalDisplay("Incorrect Sort Order");
+		}
+	}
 
-  sort_children();
-  ErrFatalDisplayIf(number_children!=NUMBER_TEST_CHILDREN,"Incorrect number of children after sort");
+	flush_children();
+
+	ErrFatalDisplayIf(number_children!=0,"Incorrect flush_children");
+	for(UInt16 i=0;i<NUMBER_TEST_CHILDREN;++i)
+	{
+		rem=(i%8);
+
+		StrCopy(buff,test_names[rem]);
+		StrPrintF(buff+StrLen(test_names[rem]),"_%i",i);
+
+		child=new doc_SiDirNode(buff);
+
+		add_child(child);
+		ErrFatalDisplayIf(number_children!=i+1,"Incorrect child count, SiDirNode");
+	}
+
+	sort_children();
+	ErrFatalDisplayIf(number_children!=NUMBER_TEST_CHILDREN,"Incorrect number of children after sort");
 
 
-  for(Int16 i=0;i<NUMBER_TEST_CHILDREN-1;++i)
-    {
-      child=child_nodes[i];
-      next_child=child_nodes[i+1];
-      ErrFatalDisplayIf(StrCompare(child->name,next_child->name)>0,"Incorrect Sort Order");
-    }
-  flush_children();
-  ErrFatalDisplayIf(number_children!=0,"Incorrect flush");
+	for(Int16 i=0;i<NUMBER_TEST_CHILDREN-1;++i)
+	{
+		child=child_nodes[i];
+		next_child=child_nodes[i+1];
+		ErrFatalDisplayIf(StrCompare(child->name,next_child->name)>0,"Incorrect Sort Order");
+	}
+	flush_children();
+	ErrFatalDisplayIf(number_children!=0,"Incorrect flush");
 }
 #endif

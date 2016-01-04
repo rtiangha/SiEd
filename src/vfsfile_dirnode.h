@@ -24,9 +24,9 @@
 class vfsfile_SiDirNode : public vfs_SiDirNode
 {
 public:
-	vfsfile_SiDirNode(Char * name) DIALOG_SECTION;
-	virtual Int16 get_position_index() const DIALOG_SECTION;
-	virtual SiFile * get_file(Char * filename) DIALOG_SECTION;
-	virtual SiDirNode * get_copy() DIALOG_SECTION;
+	vfsfile_SiDirNode(Char * name) __attribute__ ((section ("diafns")));
+	virtual Int16 get_position_index() const __attribute__ ((section ("diafns")));
+	virtual SiFile * get_file(Char * filename) __attribute__ ((section ("diafns")));
+	virtual SiDirNode * get_copy() __attribute__ ((section ("diafns")));
 };
 #endif

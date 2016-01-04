@@ -26,7 +26,7 @@
 #define SMALL_UNDO_BUFFER 4096
 #define LARGE_UNDO_BUFFER 128000
 UInt32 MAX_UNDO_BUFFER=SMALL_UNDO_BUFFER;
-	
+
 SiUndoAction::SiUndoAction()
 {
 	if(this==NULL)
@@ -39,7 +39,7 @@ SiUndoAction::~SiUndoAction()
 {
 	if(text!=NULL)
 	{
-	  SiMemHandler::free_chunk(text);
+		SiMemHandler::free_chunk(text);
 	}
 }
 //!
@@ -47,13 +47,13 @@ SiUndoAction::~SiUndoAction()
 //!
 SiTextHandler::SiTextHandler()
 {
-  UInt32 free_mem,max_chunk;
-  MemHeapFreeBytes(0,&free_mem,&max_chunk);
-  if(free_mem>SMALL_MEM_AMOUNT)
-    MAX_UNDO_BUFFER=LARGE_UNDO_BUFFER;
-  undo_action_list=curr_undo_action=NULL;
-  m_document=new SiDocument();
-  initialise();
+	UInt32 free_mem,max_chunk;
+	MemHeapFreeBytes(0,&free_mem,&max_chunk);
+	if(free_mem>SMALL_MEM_AMOUNT)
+		MAX_UNDO_BUFFER=LARGE_UNDO_BUFFER;
+	undo_action_list=curr_undo_action=NULL;
+	m_document=new SiDocument();
+	initialise();
 }
 
 SiDocument * SiTextHandler::get_document()
@@ -80,10 +80,11 @@ void SiTextHandler::initialise()
 #ifdef TEST_OBJECT_LOG
 	log_entry("SiText::init");
 #endif
+
 	m_document->free_text();
 	m_document->ready_for_change();
 	invalidate_cache();
-//	insert_block_curr_width=NOT_CALC;
+	//	insert_block_curr_width=NOT_CALC;
 	clear_undo_history();
 
 	last_undo_action=undo_action_list=curr_undo_action=NULL;
@@ -183,7 +184,7 @@ Position SiTextHandler::find_prev_word_boundary(Position start,const Boolean ign
 	{
 		while(start.x>0)
 		{
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 			ErrFatalDisplayIf(byte_offset==0,"SiText::find_prev_word_bound byte_offset==0");
 #endif
 
@@ -227,16 +228,37 @@ Boolean SiTextHandler::insert_chars(const Char* c,const BlockInt n_chars,const B
 
 	invalidate_cache();
 
-	#ifdef TEST_OBJECTS
-	ErrFatalDisplayIf(n_chars<bytes,"Incorrect char count on insert_char");
-	#endif
+#ifdef DEBUG
+	
+	if(m_document->get_number_blocks()>0)
+	  {
+	    if(ch.line>=m_document->get_number_blocks())
+	      {
+		Char buff[100];
+		StrPrintF(buff,"Writing off end of last line,ch.line=%i",ch.line);
+		ErrFatalDisplay(buff);
+	      }
+	    Int16 t_b_in;
+	    block * t_b=m_document->get_line(ch.line,t_b_in);
+	    if(ch.x>t_b->n_chars)
+	      {
+		Char buff[100];
+		StrPrintF(buff,"insert chars off end of line, ch.x=%u,t_b->n_chars=%u",ch.x,t_b->n_chars);	
+		m_document->release_line(t_b_in);
+		ErrFatalDisplay(buff);
+	      }
+	    m_document->release_line(t_b_in);
+	   
+	  }
+ ErrFatalDisplayIf(n_chars<bytes,"Incorrect char count on insert_char");
+#endif
 	//No inserting zero length blocks
 	if(bytes==0)
-	  return false;
+		return false;
 
 	//Increase document length
 	m_document->inserted_text(n_chars,bytes,1);
-	
+
 	m_document->ready_for_change();
 
 	if(!m_document->ensure_allocated(ch.line))
@@ -245,7 +267,8 @@ Boolean SiTextHandler::insert_chars(const Char* c,const BlockInt n_chars,const B
 	Int16 b_b_index;
 	//lock line ch.line
 	block * b=m_document->get_line(ch.line,b_b_index);
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 	ErrFatalDisplayIf(ch.x>b->n_chars,"Attempted write off end of block");
 #endif
 	//first insert the character in the block
@@ -253,10 +276,10 @@ Boolean SiTextHandler::insert_chars(const Char* c,const BlockInt n_chars,const B
 
 	//allocate enough space in the block's chunk
 	if(!b->ensure_space(bytes))
-	  {
-	    m_document->release_line(b_b_index);
-	    return false;
-	  }
+	{
+		m_document->release_line(b_b_index);
+		return false;
+	}
 
 	m_document->move_up_data(b,ch,bytes);
 
@@ -272,14 +295,17 @@ Boolean SiTextHandler::insert_chars(const Char* c,const BlockInt n_chars,const B
 		offset=0;
 
 	//insert text
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 	if(b->mem_chunk->size<offset+bytes)
 	{
-	  log_entry_number("Error:chunk size=",b->mem_chunk->size);
-	  log_entry_number("Error:Writing to ",offset);
-	  log_entry_number("Error:size=",bytes);
-	  log_entry_number("Error:ch.x=",ch.x);
-	  ErrFatalDisplay("Writing off end of block");
+	#ifdef DEBUG_LOG
+		log_entry_number("Error:chunk size=",b->mem_chunk->size);
+		log_entry_number("Error:Writing to ",offset);
+		log_entry_number("Error:size=",bytes);
+		log_entry_number("Error:ch.x=",ch.x);
+	#endif
+		ErrFatalDisplay("Writing off end of block");
 	}
 #endif
 
@@ -293,13 +319,15 @@ Boolean SiTextHandler::insert_chars(const Char* c,const BlockInt n_chars,const B
 	//then re-slosh document
 	//Position end is the last position that needs to be redrawn
 
-	Position new_cursor_pos(ch.x,SIGNED_NONE);
+	Position new_cursor_pos=ch;
 
 	Position earliest_change;
 
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 	ErrFatalDisplayIf(offset<ch.x,"Incorrect byte_offset, insert_char");
 #endif
+
 	Position end=m_document->tidy_lines(ch,offset,earliest_change,new_cursor_pos); //offset is the byte position of the first character inserted
 
 	if(new_cursor_pos.line!=SIGNED_NONE)
@@ -323,13 +351,11 @@ Boolean SiTextHandler::insert_chars(const Char* c,const BlockInt n_chars,const B
 	{
 		ch=new_cursor_pos;
 	}
-	else
-	{
-		m_document->correct_position(ch);
-	}
-	#ifdef TEST_OBJECTS
+
+#ifdef DEBUG
 	ErrFatalDisplayIf(ch.x>60000,"Dodgy-looking ch for undo action");
-	#endif
+#endif
+	m_document->correct_position(ch);
 	change_undo_action_start(ch);
 
 	return true;
@@ -387,12 +413,13 @@ Boolean SiTextHandler::remove_blocks(const Int16 start_line,const Int16 end_line
 }
 void SiTextHandler::invalidate_cache()
 {
-  #ifdef USE_WIDTH_CACHE
-  SiUtility::invalidate_cache();
-  #endif
+#ifdef USE_WIDTH_CACHE
+	SiUtility::invalidate_cache();
+#endif
   #ifdef USE_CHAR_CACHE
-  m_document->invalidate_cache();
-  #endif
+
+	m_document->invalidate_cache();
+#endif
 }
 Position SiTextHandler::delete_chars(Position start,Position end)
 {
@@ -463,7 +490,7 @@ Position SiTextHandler::delete_chars(Position start,Position end)
 	else
 	{
 
-	  //		Int16 start_rem,end_rem;
+		//		Int16 start_rem,end_rem;
 
 		//remove the text on the first line
 		if(start.x>0)
@@ -497,14 +524,14 @@ Position SiTextHandler::delete_chars(Position start,Position end)
 
 	earliest_change=start;
 
-	Position start_temp(start.x,SIGNED_NONE);
+	Position start_temp=start;
 	if(start.line<m_document->get_number_blocks())
 	{
-	  Position start_t(0,start.line);
-	  
-	  draw_end=m_document->tidy_lines(start_t,0,earliest_change,start_temp);
-	  if(start_temp.line!=SIGNED_NONE)
-	    start=start_temp;
+		Position start_t(0,start.line);
+
+		draw_end=m_document->tidy_lines(start_t,0,earliest_change,start_temp);
+		if(start_temp.line!=SIGNED_NONE)
+			start=start_temp;
 	}
 
 	if(increase_redraw)
@@ -523,8 +550,8 @@ Position SiTextHandler::delete_chars(Position start,Position end)
 
 	m_document->made_change(earliest_change,draw_end);
 	m_document->check_final_block_allocated();
-	
-	
+
+
 	change_undo_action_start(start);
 	return start;
 }
@@ -621,21 +648,21 @@ Position SiTextHandler::get_prev_pos(Position p)
 		p.line=0;
 	if(p.x==0)
 	{
-	  if(p.line>0)
-	    {
-	      --(p.line);
-	      //lock line ret.line
-	      Int16 b_b_index;
-	      block * b=m_document->get_line(p.line,b_b_index);
-	      p.x=b->n_chars-1;
-	      
-	      //release line ret.line
-	      m_document->release_line(b_b_index);
-	    }
+		if(p.line>0)
+		{
+			--(p.line);
+			//lock line ret.line
+			Int16 b_b_index;
+			block * b=m_document->get_line(p.line,b_b_index);
+			p.x=b->n_chars-1;
+
+			//release line ret.line
+			m_document->release_line(b_b_index);
+		}
 
 	}
 	else
-	  --p.x;
+		--p.x;
 	return p;
 }
 //!
@@ -690,10 +717,11 @@ Boolean SiTextHandler::redo(Position & f_cursor_pos)
 }
 void SiTextHandler::perform_action(SiUndoAction * action,Boolean reverse,Position & f_cursor_pos)
 {
-#ifdef TEST_OBJECTS
-  log_entry("Undo perform action");
+#ifdef DEBUG_LOG
+	log_entry("Undo perform action");
 #endif
-  Position final_cursor_pos;
+
+	Position final_cursor_pos;
 	disable_undo_history();
 	m_document->ready_for_change();
 	switch(action->status)
@@ -715,7 +743,7 @@ void SiTextHandler::perform_action(SiUndoAction * action,Boolean reverse,Positio
 		if(reverse)
 		{
 			delete_chars(action->start_position,action->end_position);
-			f_cursor_pos=action->end_position;
+			f_cursor_pos=action->start_undone_position;
 		}
 		else
 		{
@@ -733,30 +761,34 @@ void SiTextHandler::perform_action(SiUndoAction * action,Boolean reverse,Positio
 
 void SiTextHandler::change_undo_action_end(Position end_pos)
 {
-	#ifdef LOG_ENTRY
+#ifdef LOG_ENTRY
 	log_entry("SiText::change_undo_action_end");
-	#endif
-	#ifdef TEST_OBJECTS
+#endif
+	#ifdef DEBUG
 
 	ErrFatalDisplayIf(end_pos.x>60000,"Dodgy-looking end_pos for change end undo action");
 #endif
+
 	if(curr_undo_action!=NULL&&undo_active)
 		curr_undo_action->end_position=end_pos;
 }
 
 void SiTextHandler::change_undo_action_start(Position pos)
 {
-  #ifdef TEST_OBJECTS
-  ErrFatalDisplayIf(pos.x>60000,"Dodgy-looking start_pos for change undo action start");
-  #endif
+#ifdef DEBUG
+	ErrFatalDisplayIf(pos.x>60000,"Dodgy-looking start_pos for change undo action start");
+	ErrFatalDisplayIf(pos.line>m_document->get_number_blocks(),"Undo action start off end of document");
+#endif
+
 	if(curr_undo_action!=NULL&&undo_active)
 		curr_undo_action->start_undone_position=pos;
 }
 SiUndoAction * SiTextHandler::create_undo_action()
 {
-	#ifdef LOG_ENTRY
+#ifdef LOG_ENTRY
 	log_entry("SiText::create_undo_action");
-	#endif
+#endif
+
 	SiUndoAction* action=NULL;
 	while((action=new SiUndoAction())==NULL)
 	{
@@ -768,9 +800,22 @@ SiUndoAction * SiTextHandler::create_undo_action()
 
 Boolean SiTextHandler::add_undo_action(const Char * text,BlockInt n_bytes,Position start_pos,Position end_pos,UInt8 type)
 {
-	#ifdef LOG_ENTRY
+#ifdef LOG_ENTRY
 	log_entry("SiText::add_undo_action");
-	#endif
+ErrFatalDisplayIf(ch.line>=m_document->get_number_blocks(),"Writing off end of last line");
+	Int16 t_b_in;
+	block * t_b=m_document->get_line(start_pos.line,t_b_in);
+	if(start_pos.x>t_b->n_chars)
+	  {
+	    Char buff[100];
+	    StrPrintF(buff,"insert chars off end of line, ch.x=%u,t_b->n_chars=%u",start_pos.x,t_b->n_chars);	
+	    m_document->release_line(t_b_in);
+	    ErrFatalDisplay(buff);
+	  }
+	m_document->release_line(t_b_in);
+
+#endif
+
 	if(!undo_active)
 		return false;
 
@@ -781,11 +826,11 @@ Boolean SiTextHandler::add_undo_action(const Char * text,BlockInt n_bytes,Positi
 	}
 
 	if(!ensure_undo_space(n_bytes+sizeof(SiUndoAction)))
-	  return false;
+		return false;
 
 	SiUndoAction * action=create_undo_action();
 	if(NULL==action)
-	  return false;
+		return false;
 
 	if(text!=NULL)
 	{
@@ -796,7 +841,7 @@ Boolean SiTextHandler::add_undo_action(const Char * text,BlockInt n_bytes,Positi
 			FrmAlert(UnableToUndoAlert);
 			return false;
 		}
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 		ErrFatalDisplayIf(action->text->size<n_bytes,"Writing action off end of block");
 #endif
 
@@ -805,10 +850,12 @@ Boolean SiTextHandler::add_undo_action(const Char * text,BlockInt n_bytes,Positi
 
 
 	undo_memory_usage+=sizeof(SiUndoAction)+n_bytes;
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 	ErrFatalDisplayIf(start_pos.x>60000,"Dodgy-looking start_pos for undo action");
 	ErrFatalDisplayIf(end_pos.x>60000,"Dodgy-looking end_pos for undo action");
 #endif
+
 	action->start_position=start_pos;
 	action->end_position=end_pos;
 	action->status=type;
@@ -827,7 +874,7 @@ Boolean SiTextHandler::add_undo_action(const Char * text,BlockInt n_bytes,Positi
 	}
 	last_undo_action=NULL;
 	if(undo_action_list==NULL)
-	  undo_action_list=action;
+		undo_action_list=action;
 	action->prev=curr_undo_action;
 	curr_undo_action=action;
 
@@ -836,10 +883,10 @@ Boolean SiTextHandler::add_undo_action(const Char * text,BlockInt n_bytes,Positi
 
 Boolean SiTextHandler::ensure_undo_space(const BlockInt n_bytes)
 {
-	#ifdef LOG_ENTRY
+#ifdef LOG_ENTRY
 	log_entry("SiText::ensure_undo_space");
-	#endif
-	
+#endif
+
 	while(undo_memory_usage+n_bytes>MAX_UNDO_BUFFER)
 	{
 		if(!remove_last_undo_action())
@@ -858,7 +905,7 @@ Boolean SiTextHandler::ensure_undo_space(const BlockInt n_bytes)
 
 Boolean SiTextHandler::append_text_undo_action(const Char * text,BlockInt n_bytes)
 {
-	
+
 	if(!undo_active)
 		return false;
 
@@ -891,7 +938,7 @@ Boolean SiTextHandler::append_text_undo_action(const Char * text,BlockInt n_byte
 			}
 			else
 			{
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 				ErrFatalDisplayIf(curr_undo_action->text->size<initial_size+n_bytes,"Appending undo off end of block");
 #endif
 
@@ -907,9 +954,10 @@ Boolean SiTextHandler::append_text_undo_action(const Char * text,BlockInt n_byte
 
 Boolean SiTextHandler::remove_last_undo_action()
 {
-	#ifdef LOG_ENTRY
+#ifdef LOG_ENTRY
 	log_entry("SiText::remove_last_undo_action");
-	#endif
+#endif
+
 	if(undo_action_list==NULL)
 		return false;
 	else
@@ -940,9 +988,9 @@ void SiTextHandler::clear_actions_after(SiUndoAction * action)
 	{
 		temp_action=action->next;
 		if(action->text!=NULL)
-		  undo_memory_usage-=(sizeof(SiUndoAction)+action->text->size);
+			undo_memory_usage-=(sizeof(SiUndoAction)+action->text->size);
 		else
-		  undo_memory_usage-=(sizeof(SiUndoAction));
+			undo_memory_usage-=(sizeof(SiUndoAction));
 		delete action;
 		action=temp_action;
 	}
@@ -984,12 +1032,12 @@ UInt32 SiTextHandler::get_number_words(UInt32 &alphanum_chars)
 			}
 			else
 			{
-			  ++alphanum_chars;
-			  in_word=true;
-				
+				++alphanum_chars;
+				in_word=true;
+
 			}
 		}
-		
+
 		m_document->release_line(b_b_index);
 	}
 	return n_words;
@@ -1022,12 +1070,12 @@ WChar SiTextHandler::get_charBeforepos(Position &p)
 	return(retc);
 }
 
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 Boolean SiTextHandler::perform_tests()
 {
-	#ifdef TEST_OBJECT_LOG
+#ifdef TEST_OBJECT_LOG
 	log_entry("SiTextHandler::tests()");
-	#endif
+#endif
 
 	const Char* buff="1234567890 1234567890 ";
 	Position pos,new_cursor_pos;
@@ -1037,36 +1085,41 @@ Boolean SiTextHandler::perform_tests()
 	ErrFatalDisplayIf(m_document->get_doc_length()!=StrLen(buff),"SiTextHandler test fail: document byte length");
 	ErrFatalDisplayIf(m_document->get_number_chars()!=StrLen(buff),"SiTextHandler test fail: document char length");
 
-	#ifdef TEST_OBJECT_LOG
+#ifdef TEST_OBJECT_LOG
+
 	log_entry("SiTextHandler::tests() 1");
-	#endif
+#endif
 
 	ErrFatalDisplayIf(new_cursor_pos.line!=(UInt16)0||new_cursor_pos.x!=StrLen(buff),"SiTextHandler test fail: cursor position");
 	Position diff_cursor_pos=new_cursor_pos;
 	insert_chars(buff,StrLen(buff),StrLen(buff),new_cursor_pos,diff_cursor_pos);
-	#ifdef TEST_OBJECT_LOG
+#ifdef TEST_OBJECT_LOG
+
 	log_entry("SiTextHandler::tests() 2");
-	#endif
+#endif
+
 	ErrFatalDisplayIf(diff_cursor_pos.x!=StrLen(buff)||diff_cursor_pos.line!=(UInt16)1,"SiTextHandler test fail : cursor pos line wrap");
-	
+
 	Position start_del(11,0);
 	Position end_del(10,1);
-	
+
 	delete_chars(start_del,end_del);
-	#ifdef TEST_OBJECT_LOG
+#ifdef TEST_OBJECT_LOG
+
 	log_entry("SiTextHandler::tests() 2.6");
 
-	
 
-	#endif
+
+#endif
 
 	initialise();
 	Int16 b_b_index;
 	ErrFatalDisplayIf(m_document->get_doc_length()!=0,"SiTextHandler test fail:initialise()");
 	ErrFatalDisplayIf(m_document->get_line(0,b_b_index)!=NULL,"SiTextHandler test fail: initialise2()");
 
-
+	#ifdef DEBUG_LOG
 	log_entry("SiTextHandler tests complete");
+	#endif
 
 
 

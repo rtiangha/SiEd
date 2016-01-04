@@ -26,16 +26,16 @@ class root_SiDirNode : public SiDirNode
 {
 public:
 	root_SiDirNode();
-	virtual SiFile* get_file(Char * filename) DIALOG_SECTION;
-	virtual SiFile* create_file(Char * filename,UInt32 size) DIALOG_SECTION;
-	virtual void populate() DIALOG_SECTION;
-	virtual SiDirNode * get_copy() DIALOG_SECTION;
-	virtual Char * get_path(UInt16 type) DIALOG_SECTION;
+	virtual SiFile* get_file(Char * filename) __attribute__ ((section ("diafns")));
+	virtual SiFile* create_file(Char * filename,UInt32 size) __attribute__ ((section ("diafns")));
+	virtual void populate() __attribute__ ((section ("diafns")));
+	virtual SiDirNode * get_copy() __attribute__ ((section ("diafns")));
+	virtual Char * get_path(UInt16 type) __attribute__ ((section ("diafns")));
 protected:
-	void add_vfs_volumes() DIALOG_SECTION;
-	void add_pdb_files() DIALOG_SECTION;
-	void add_doc_files() DIALOG_SECTION;
-	void add_databases_by_type(SiDirNode * node,UInt32 creator,UInt32 type) DIALOG_SECTION;
+	void add_vfs_volumes() __attribute__ ((section ("diafns")));
+	void add_pdb_files() __attribute__ ((section ("diafns")));
+	void add_doc_files() __attribute__ ((section ("diafns")));
+	void add_databases_by_type(SiDirNode * node,UInt32 creator,UInt32 type) __attribute__ ((section ("diafns")));
 
 };
 #endif

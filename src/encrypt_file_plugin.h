@@ -32,31 +32,31 @@
 class encrypt_SiFilePlugin : public SiFilePlugin
 {
 public:
-	encrypt_SiFilePlugin(SiFile * parent) FILE_SECTION;
-	virtual ~encrypt_SiFilePlugin() FILE_SECTION;
-	virtual UInt32 adjust_size(UInt32 size) const FILE_SECTION;
+	encrypt_SiFilePlugin(SiFile * parent) __attribute__ ((section ("filefns")));
+	virtual ~encrypt_SiFilePlugin() __attribute__ ((section ("filefns")));
+	virtual UInt32 adjust_size(UInt32 size) const __attribute__ ((section ("filefns")));
 
 protected:
-	void remove_trailing_zeros(SiMemChunk * chunk) FILE_SECTION;
-	void pad_buffer(Char * data,Int16 start_pos) FILE_SECTION;
-	BlockInt append_to_cache(const SiMemChunk  * const chunk,Int16 &amount_done) FILE_SECTION;
+	void remove_trailing_zeros(SiMemChunk * chunk) __attribute__ ((section ("filefns")));
+	void pad_buffer(Char * data,Int16 start_pos) __attribute__ ((section ("filefns")));
+	BlockInt append_to_cache(const SiMemChunk  * const chunk,Int16 &amount_done) __attribute__ ((section ("filefns")));
 
-	Char * get_passphrase() FILE_SECTION;
-	Char * get_key(Char * passphrase) FILE_SECTION;
-	Char * get_salt() FILE_SECTION;
-	void get_hash(Char * conc,Int16 len) FILE_SECTION;
-	virtual Boolean do_initialise(const Int16 access_mode) FILE_SECTION;
-	virtual void do_finalise() FILE_SECTION;
-	void flush_cache() FILE_SECTION;
+	Char * get_passphrase() __attribute__ ((section ("filefns")));
+	Char * get_key(Char * passphrase) __attribute__ ((section ("filefns")));
+	Char * get_salt() __attribute__ ((section ("filefns")));
+	void get_hash(Char * conc,Int16 len) __attribute__ ((section ("filefns")));
+	virtual Boolean do_initialise(const Int16 access_mode) __attribute__ ((section ("filefns")));
+	virtual void do_finalise() __attribute__ ((section ("filefns")));
+	void flush_cache() __attribute__ ((section ("filefns")));
 	friend Int16 SiFile::write_direct(const SiMemChunk * const chunk);
 	friend void SiFile::read_direct(SiMemChunk * chunk);
-	virtual void process_data_to_storage(const SiMemChunk * const chunk) FILE_SECTION;
-	virtual void process_data_from_storage(SiMemChunk * chunk) FILE_SECTION;
-	void encrypt_data(SiMemChunk * chunk) FILE_SECTION;
-	void decrypt_data(SiMemChunk * chunk) FILE_SECTION;
-	void write_header() FILE_SECTION;
-	void read_header() FILE_SECTION;
-	void do_enc_write(SiMemChunk  *chunk) FILE_SECTION;
+	virtual void process_data_to_storage(const SiMemChunk * const chunk) __attribute__ ((section ("filefns")));
+	virtual void process_data_from_storage(SiMemChunk * chunk) __attribute__ ((section ("filefns")));
+	void encrypt_data(SiMemChunk * chunk) __attribute__ ((section ("filefns")));
+	void decrypt_data(SiMemChunk * chunk) __attribute__ ((section ("filefns")));
+	void write_header() __attribute__ ((section ("filefns")));
+	void read_header() __attribute__ ((section ("filefns")));
+	void do_enc_write(SiMemChunk  *chunk) __attribute__ ((section ("filefns")));
 	Char * pass_phrase;
 	Char * cache_data;
 	Char * m_salt;

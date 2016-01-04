@@ -30,29 +30,29 @@ public:
 	virtual ~doc_SiFile();
 
 	virtual void open() ;
-	virtual void resize(const UInt32 size) FILE_SECTION;
+	virtual void resize(const UInt32 size) __attribute__ ((section ("filefns")));
 
-	virtual UInt32 get_size() FILE_SECTION;
-	virtual void move_cursor(const Int32 amount,const Int16 dir) FILE_SECTION;
-	virtual void set_access_mode(const Int16 mode) FILE_SECTION;
+	virtual UInt32 get_size() __attribute__ ((section ("filefns")));
+	virtual void move_cursor(const Int32 amount,const Int16 dir) __attribute__ ((section ("filefns")));
+	virtual void set_access_mode(const Int16 mode) __attribute__ ((section ("filefns")));
 protected:
-	void remove_last_record() FILE_SECTION;
-	UInt16 last_record_remaining_space() FILE_SECTION;
-	UInt16 last_record_size() FILE_SECTION;
-	void update_record_cursor(const UInt16 amount,const Int16 dir) FILE_SECTION;
-	void resize_last_record(const Int32 size_to_add) FILE_SECTION;
-	Boolean read_header() FILE_SECTION;
-	Boolean write_header() FILE_SECTION;
+	void remove_last_record() __attribute__ ((section ("filefns")));
+	UInt16 last_record_remaining_space() __attribute__ ((section ("filefns")));
+	UInt16 last_record_size() __attribute__ ((section ("filefns")));
+	void update_record_cursor(const UInt16 amount,const Int16 dir) __attribute__ ((section ("filefns")));
+	void resize_last_record(const Int32 size_to_add) __attribute__ ((section ("filefns")));
+	Boolean read_header() __attribute__ ((section ("filefns")));
+	Boolean write_header() __attribute__ ((section ("filefns")));
 
-	Boolean add_records(const UInt32 total_size) FILE_SECTION;
-	Boolean remove_records(const UInt32 total_size) FILE_SECTION;
-	virtual Boolean create_database(const UInt32 size) FILE_SECTION;
+	Boolean add_records(const UInt32 total_size) __attribute__ ((section ("filefns")));
+	Boolean remove_records(const UInt32 total_size) __attribute__ ((section ("filefns")));
+	virtual Boolean create_database(const UInt32 size) __attribute__ ((section ("filefns")));
 
 	virtual void write_direct(const SiMemChunk * const chunk);
 	virtual Int16 read_direct(SiMemChunk * chunk);
-	void lock_next_record() FILE_SECTION;
+	void lock_next_record() __attribute__ ((section ("filefns")));
 	void lock(const UInt16 text_record)
-		FILE_SECTION;
+		__attribute__ ((section ("filefns")));
 
 	UInt16 header_size;
 	UInt16 curr_record_size;

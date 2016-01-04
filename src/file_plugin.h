@@ -30,19 +30,19 @@ class SiFilePlugin
 public:
 	SiFilePlugin(SiFile* parent_file);
 	virtual ~SiFilePlugin();
-	Boolean initialise(const Int16 access_mode) DIALOG_SECTION;
+	Boolean initialise(const Int16 access_mode) __attribute__ ((section ("diafns")));
 	void translate_to_storage(const SiMemChunk * const chunk);
 	void translate_from_storage(SiMemChunk * chunk);
 	void flush();
-	void finalise() DIALOG_SECTION;
-	void add_plugin(SiFilePlugin* n_plug) DIALOG_SECTION;
+	void finalise() __attribute__ ((section ("diafns")));
+	void add_plugin(SiFilePlugin* n_plug) __attribute__ ((section ("diafns")));
 	SiFilePlugin * next_plugin;
 
 	//write bypassing plugins
 	virtual void process_data_to_storage(const SiMemChunk * const chunk);
 	virtual void process_data_from_storage(SiMemChunk * chunk);
 	virtual UInt32 adjust_size(UInt32 size) const;
-	static SiFilePlugin * get_plugin_chain(SiFile * file) DIALOG_SECTION;
+	static SiFilePlugin * get_plugin_chain(SiFile * file) __attribute__ ((section ("diafns")));
 
 protected:
 

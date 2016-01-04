@@ -30,6 +30,7 @@
 #include "root_dirnode.h"
 #include "form_pos.h"
 #include "encrypt_file_plugin.h"
+#include "main.h"
 #ifdef TEST_OBJECT_UNIT
 #include "doc_dirnode.h"
 #endif
@@ -41,7 +42,7 @@ SiDirNode * SiFileDialog::curr_node=NULL;
 Char * SiFileDialog::curr_path=NULL;
 Int16 SiFileDialog::file_selected=noListSelection;
 Boolean SiFileDialog::VFS_SUPPORT=false;
-Boolean filelistloop(EventPtr e) FILE_SECTION;
+Boolean filelistloop(EventPtr e) __attribute__ ((section ("filefns")));;
 Boolean SiFileDialog::update_dir_display=false;
 TimeFormatType SiFileDialog::TIME_STYLE=(TimeFormatType)0;
 DateFormatType SiFileDialog::DATE_STYLE=(DateFormatType)0;
@@ -49,6 +50,7 @@ UInt16 SiFileDialog::dialog_mode=SAVE_FILE;
 UInt16 SiFileDialog::save_options=0;
 Char * SiFileDialog::working_dir=NULL;
 UInt16 SiFileDialog::working_vol=NON_VFS;
+
 const Char * SiFileDialog::m_initial_filename=NULL;
 //! Event handling loop for the file dialog
 //!
@@ -61,6 +63,8 @@ Boolean filelistloop(EventPtr event)
 	ListPtr list;
 	switch (event->eType)
 	{
+	case frmOpenEvent:
+		break;
 	case lstSelectEvent:
 		form = FrmGetFormPtr(ResFileDialog);
 		list =
@@ -77,9 +81,11 @@ Boolean filelistloop(EventPtr event)
 		handled=true;
 		break;
 	case winEnterEvent:
-	  if((FormType*)event->data.winEnter.enterWindow==FrmGetFormPtr(ResFileDialog)&&
-	     (FormType*)event->data.winEnter.exitWindow==FrmGetFormPtr(ResformID_text))
-	    SiFileDialog::initialise_dir_field();
+		edit_interface->set_size_limits(ResFileDialog);
+		if((FormType*)event->data.winEnter.enterWindow==FrmGetFormPtr(ResFileDialog)&&
+				(FormType*)event->data.winEnter.exitWindow==FrmGetFormPtr(ResformID_text))
+			SiFileDialog::initialise_dir_field();
+		
 		break;
 	default:
 		break;
@@ -91,8 +97,8 @@ Boolean filelistloop(EventPtr event)
 //!
 void drawFileName(Int16 itemNum, RectangleType * bounds, Char ** itemsText)
 {
-#ifdef EN_LOG
-	log_entry_number("draw_file_name number ",itemNum);
+#ifdef DEBUG_LOG
+	log_entry_number("SiFileDialog::draw_file_name number ",itemNum);
 #endif
 
 	if(SiFileDialog::curr_node!=NULL&&itemNum>=0&&itemNum<(Int16)SiFileDialog::curr_node->number_children)
@@ -149,12 +155,12 @@ Boolean SiFileDialog::check_selected_file()
 	Boolean handled=true;
 	if(file_selected!=noListSelection)
 	{
-/*		if(curr_node->child_nodes[file_selected]->get_file_size()>MAX_FILE_SIZE)
-		{
-			FrmAlert(FileTooLargeAlert);
-		}
-		else*/
-			handled=false;
+		/*		if(curr_node->child_nodes[file_selected]->get_file_size()>MAX_FILE_SIZE)
+				{
+					FrmAlert(FileTooLargeAlert);
+				}
+				else*/
+		handled=false;
 	}
 	return handled;
 
@@ -177,9 +183,9 @@ Boolean SiFileDialog::handle_button_press(const UInt16 button)
 		handled=true;
 		break;
 	case DeleteFileButton:
-	  handle_delete();
-	  handled=true;
-	  break;
+		handle_delete();
+		handled=true;
+		break;
 	case OpenFileButton:
 		if(dialog_mode==OPEN_FILE)
 		{
@@ -191,15 +197,15 @@ Boolean SiFileDialog::handle_button_press(const UInt16 button)
 			text_field=(FieldPtr)FrmGetObjectPtr(frm,FrmGetObjectIndex(frm,OpenFileFileField));
 			dest = FldGetTextPtr(text_field);
 			if(dest==NULL)
-			  handled=true;
-			else
-			  {
-			    if(!valid_file_name(dest))
-			      {
-				DisplayError(INVALID_FILE_NAME,dest);
 				handled=true;
-			      }
-			  }
+			else
+			{
+				if(!valid_file_name(dest))
+				{
+					DisplayError(INVALID_FILE_NAME,dest);
+					handled=true;
+				}
+			}
 		}
 		break;
 	case NewDirButton:
@@ -221,7 +227,7 @@ void SiFileDialog::handle_decrypt_file()
 {
 	//! Decrypt the selected file by reading the data out of it
 	//! and writing it out to another file
-#ifdef EN_LOG
+#ifdef DEBUG_LOG
 	log_entry("SiFileDialog::Decrypting file");
 #endif
 
@@ -233,11 +239,11 @@ void SiFileDialog::handle_decrypt_file()
 		return;
 	SiFilePlugin * plug=file->is_encrypted();
 	if(plug==NULL)
-	  {
-	    DisplayError(NOT_ENCRYPTED,FILE_NOT_ENCRYPTED_TEXT);
-	    delete file;
-	    return;
-	  }
+	{
+		DisplayError(NOT_ENCRYPTED,FILE_NOT_ENCRYPTED_TEXT);
+		delete file;
+		return;
+	}
 
 	//initialise the files
 	file->add_plugin(plug,AT_END);
@@ -297,10 +303,10 @@ void SiFileDialog::handle_decrypt_file()
 	Char * name=(Char *)MemPtrNew(StrLen(file->get_name())+StrLen("-decrypt")+1);
 	StrCopy(name,file->get_name());
 	StrCopy(name+StrLen(name),"-decrypt");
-	
-	
+
+
 	file->close();
-	
+
 	delete file;
 	dest_file->resize(amount_done);
 	dest_file->close();
@@ -310,13 +316,13 @@ void SiFileDialog::handle_decrypt_file()
 		existing_file->delete_file();
 		delete existing_file;
 	}
-	
+
 	dest_file->rename(name);
 	MemPtrFree(name);
 	//dest_file->open();
 
 
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
 	//ErrFatalDisplayIf(dest_file->get_size()!=amount_done,"Incorrect resize");
 #endif
 
@@ -361,7 +367,7 @@ void SiFileDialog::handle_new_dir()
 
 void SiFileDialog::handle_rename()
 {
-#ifdef EN_LOG
+#ifdef DEBUG_LOG
 	log_entry("Renaming file");
 #endif
 
@@ -399,18 +405,18 @@ void SiFileDialog::handle_rename()
 
 	//file_selected=noListSelection;
 	if(ret==RenameFileRename)
-	  {
-	    clear_selection();
-	    make_current_node(curr_node);
-	  }
-	
+	{
+		clear_selection();
+		make_current_node(curr_node);
+	}
+
 
 }
 
 void SiFileDialog::handle_delete()
 {
-#ifdef EN_LOG
-	log_entry("deleting file");
+#ifdef DEBUG_LOG
+	log_entry("SiFileDialog::deleting file");
 #endif
 
 	if(file_selected==noListSelection)
@@ -428,29 +434,29 @@ void SiFileDialog::handle_delete()
 	}
 	delete file;
 	if(ret==DeleteYes)
-	  {
-	    
-	    clear_selection();
-	    make_current_node(curr_node);
-	  }
-	
+	{
+
+		clear_selection();
+		make_current_node(curr_node);
+	}
+
 }
 
 void SiFileDialog::check_decrypt_button(const Int16 num)
 {
-  FormPtr frm=FrmGetActiveForm();
+	FormPtr frm=FrmGetActiveForm();
 
-  if(num==noListSelection)
-    FrmHideObject(frm,FrmGetObjectIndex(frm,DecryptButton));
+	if(num==noListSelection)
+		FrmHideObject(frm,FrmGetObjectIndex(frm,DecryptButton));
 
-  if(curr_node->child_nodes[num]->is_encrypted())
-    {     
-      FrmShowObject(frm,FrmGetObjectIndex(frm,DecryptButton));
-    }
-  else
-    {
-      FrmHideObject(frm,FrmGetObjectIndex(frm,DecryptButton));
-    }
+	if(curr_node->child_nodes[num]->is_encrypted())
+	{
+		FrmShowObject(frm,FrmGetObjectIndex(frm,DecryptButton));
+	}
+	else
+	{
+		FrmHideObject(frm,FrmGetObjectIndex(frm,DecryptButton));
+	}
 }
 Boolean SiFileDialog::handle_list_select(const Int16 num)
 {
@@ -519,8 +525,8 @@ void SiFileDialog::show_buttons()
 	{
 		FrmHideObject(frm,FrmGetObjectIndex(frm,NewDirButton));
 	}
-      FrmHideObject(frm,FrmGetObjectIndex(frm,DecryptButton));
-	
+	FrmHideObject(frm,FrmGetObjectIndex(frm,DecryptButton));
+
 }
 
 void SiFileDialog::switch_to_dir(UInt16 num)
@@ -553,19 +559,17 @@ void SiFileDialog::set_dir_field(SiDirNode * node)
 		FldDrawField(field);
 	}
 
-	
-	
-		
+
+
+
 	set_open_field(node);
-#ifdef EN_LOG
-	log_entry("Set_dir field 5");
-#endif
+
 }
 void SiFileDialog::set_open_field(SiDirNode* node)
 {
 	FormPtr form=FrmGetFormPtr(ResFileDialog);
 	FieldType *field=(FieldPtr)FrmGetObjectPtr(form,FrmGetObjectIndex(form,OpenFileFileField));
-		
+
 	if((node->options&DISPLAY_FILENAME))
 	{
 		FldEraseField(field);
@@ -575,7 +579,7 @@ void SiFileDialog::set_open_field(SiDirNode* node)
 		if((node->name!=NULL))
 		{
 			FldInsert(field,node->name,StrLen(node->name));
-	
+
 		}
 	}
 	FldDrawField(field);
@@ -660,9 +664,10 @@ void SiFileDialog::clear_data_display()
 
 void SiFileDialog::initialise_list(const char * initial_dir,UInt16 vol)
 {
-#ifdef EN_LOG
-	log_entry("initialise_list");
+#ifdef DEBUG_LOG
+	log_entry("SiFileDialog::initialise_list");
 #endif
+	edit_interface->set_size_limits(ResFileDialog);
 
 	curr_path=NULL;
 	curr_node=get_node(initial_dir,vol);
@@ -694,12 +699,12 @@ void SiFileDialog::initialise_list(const char * initial_dir,UInt16 vol)
 SiFile * SiFileDialog::popup_file_list(const Int16 x,const Int16 y)
 {
   curr_node=get_node(working_dir,working_vol);
-
+ 
   FormPtr frm=FrmGetFormPtr(ResformID_text);
   Err err=LstNewList ((void**)(&frm),PopupFileList,x+FILE_X_OFFSET,y-FILE_POPUP_HEIGHT,FILE_POPUP_WIDTH,FILE_POPUP_HEIGHT,stdFont,curr_node->number_children,0);
   if(err!=errNone)
     return NULL;
-
+ 
   ListPtr list = (ListPtr)FrmGetObjectPtr(frm, FrmGetObjectIndex(frm, PopupFileList));
   LstSetDrawFunction(list, drawFileName);
   LstSetListChoices(list, NULL, curr_node->number_children);
@@ -711,7 +716,7 @@ SiFile * SiFileDialog::popup_file_list(const Int16 x,const Int16 y)
 
 Char* SiFileDialog::show_save_form(const Char * initial_dir,UInt16 vol)
 {
-#ifdef EN_LOG2
+#ifdef TEST_OBJECTS_LOG
 	log_entry("SiFileDialog::show_save_form");
 #endif
 
@@ -733,9 +738,9 @@ Char* SiFileDialog::show_save_form(const Char * initial_dir,UInt16 vol)
 		FrmSetControlValue(frm,FrmGetObjectIndex(frm,EncryptionCheckbox),0);
 
 	Char * name=NULL;
-	
+
 	FrmSetFocus(frm,FrmGetObjectIndex(frm,OpenFileFileField));
-	
+
 	//if the user clicked save, return the selected name
 
 	if(FrmDoDialog(frm)==OpenFileButton)
@@ -746,14 +751,14 @@ Char* SiFileDialog::show_save_form(const Char * initial_dir,UInt16 vol)
 		{
 			if(valid_file_name(dest))
 			{
-			  name=(Char*)MemPtrNew(StrLen(dest)+1);
-			  StrCopy(name, dest);
+				name=(Char*)MemPtrNew(StrLen(dest)+1);
+				StrCopy(name, dest);
 			}
 			else
-			  {
-			   
-			    dest=NULL;
-			  }
+			{
+
+				dest=NULL;
+			}
 		}
 	}
 	if(FrmGetControlValue(frm,FrmGetObjectIndex(frm,EncryptionCheckbox))==1)
@@ -785,9 +790,9 @@ UInt16 SiFileDialog::show_open_form(const Char * initial_dir,UInt16 vol)
 }
 void SiFileDialog::show_manage_buttons()
 {
-  FormPtr frm=FrmGetFormPtr(ResFileDialog);
-  FrmShowObject(frm,FrmGetObjectIndex(frm,RenameFileButton));
-  FrmShowObject(frm,FrmGetObjectIndex(frm,DeleteFileButton));
+	FormPtr frm=FrmGetFormPtr(ResFileDialog);
+	FrmShowObject(frm,FrmGetObjectIndex(frm,RenameFileButton));
+	FrmShowObject(frm,FrmGetObjectIndex(frm,DeleteFileButton));
 }
 
 SiFile * SiFileDialog::ShowFileManageDialog(Char * location,UInt16 vol)
@@ -799,7 +804,7 @@ SiFile * SiFileDialog::ShowFileManageDialog(Char * location,UInt16 vol)
 	initialise_list(location,vol);
 	show_buttons();
 	//turn the generic file dialog into a manage file dialog
-	
+
 	ControlType * open_button=(ControlType*)FrmGetObjectPtr(frm,FrmGetObjectIndex(frm,CancelFileButton));
 	CtlSetLabel(open_button,CLOSE);
 	show_manage_buttons();
@@ -810,7 +815,7 @@ SiFile * SiFileDialog::ShowFileManageDialog(Char * location,UInt16 vol)
 	//FrmShowObject(frm,FrmGetObjectIndex(frm,DecryptButton));
 
 	//set_dir_field(curr_node);
-	
+
 	UInt16 ret_button=FrmDoDialog(frm);
 	FrmDeleteForm(frm);
 	SiFile * t_file=NULL;
@@ -828,12 +833,12 @@ SiFile * SiFileDialog::ShowFileManageDialog(Char * location,UInt16 vol)
 
 SiFile * SiFileDialog::ShowOpenFileDialog(const char* initial_dir,UInt16 vol)
 {
-	
+
 	dialog_mode=OPEN_FILE;
 	UInt16 ret_button;
 
 	SiFile * t_file=NULL;
-	
+
 	//display the dialog using the passed in dir or the previous files's dir if it exists
 	if(initial_dir!=NULL)
 		ret_button = show_open_form(initial_dir,vol);
@@ -868,7 +873,7 @@ void SiFileDialog::set_working_dir(SiFile * t_file)
 
 SiFile * SiFileDialog::ShowSaveFileDialog(const char * initial_filename,const char* initial_dir,const UInt32 size,UInt16 vol)
 {
-#ifdef EN_LOG2
+#ifdef TEST_OBJECTS_LOG
 	log_entry("SiFileDialog::ShowSaveFileDialog");
 #endif
 
@@ -953,7 +958,7 @@ Char * SiFileDialog::get_next_name(const Char * location,Int16 & start_pos,const
 
 SiDirNode * SiFileDialog::parse_path(const Char * path,UInt16 vol)
 {
-#ifdef EN_LOG2
+#ifdef TEST_OBJECTS_LOG
 	log_entry("SiFileDialog::parse_path");
 #endif
 
@@ -1004,11 +1009,11 @@ Boolean SiFileDialog::valid_file_name(const char *name)
 	{
 		change=TxtGetNextChar(name,offset,&the_char);
 		if(change>1)
-		  return false;
+			return false;
 		else if(the_char=='\\'||the_char=='/'||the_char=='*'||the_char=='?')
-		  return false;
+			return false;
 		else
-		  offset+=change;
+			offset+=change;
 	}
 	return true;
 }
@@ -1086,43 +1091,46 @@ void SiFileDialog::Beam(const UInt16 menuItemId)
 #ifdef TEST_OBJECT_UNIT
 void SiFileDialog::perform_tests()
 {
-  return;
-  
-  SiDirNode * root=new root_SiDirNode();
-  SiDirNode * child;
-  Char buff[10];
-  
-  for(Int16 i=0;i<10;++i)
-    {
-      StrPrintF(buff,"n:%i",9-i);
-      
-      child=new doc_SiDirNode(buff);
-      root->add_child(child);
-    }
-  ErrFatalDisplayIf(root->number_children!=10,"Incorrect number of children, root_SiDirNode");
-  
-  root->sort_children();
-  for(Int16 i=0;i<10;++i)
-    {
-      StrPrintF(buff,"n:%i",i);
-      child=root->get_child(i);
-      #ifdef TEST_OBJECTS
-      log_entry("Expected:");
+	return;
 
-      log_entry(buff);
-      log_entry("Actual:");
-#endif
-      if(child->name!=NULL)
+	SiDirNode * root=new root_SiDirNode();
+	SiDirNode * child;
+	Char buff[10];
+
+	for(Int16 i=0;i<10;++i)
 	{
-	  
-	#ifdef TEST_OBJECTS
-	  log_entry(child->name);
-#endif
-	  ErrFatalDisplayIf(StrCompare(child->name,buff)!=0,"Incorrect sorted order");
+		StrPrintF(buff,"n:%i",9-i);
+
+		child=new doc_SiDirNode(buff);
+		root->add_child(child);
 	}
-      
-    }
-  
+	ErrFatalDisplayIf(root->number_children!=10,"Incorrect number of children, root_SiDirNode");
+
+	root->sort_children();
+	for(Int16 i=0;i<10;++i)
+	{
+		StrPrintF(buff,"n:%i",i);
+		child=root->get_child(i);
+#ifdef DEBUG_LOG
+
+		log_entry("SiFileDialog::Expected:");
+
+		log_entry(buff);
+		log_entry("SiFileDialog::Actual:");
+#endif
+
+		if(child->name!=NULL)
+		{
+
+#ifdef DEBUG_LOG
+			log_entry(child->name);
+#endif
+
+			ErrFatalDisplayIf(StrCompare(child->name,buff)!=0,"Incorrect sorted order");
+		}
+
+	}
+
 }
 
 #endif

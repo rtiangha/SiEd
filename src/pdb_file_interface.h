@@ -27,21 +27,21 @@ public:
 	pdb_SiFile(const Char * name,const Char * location,const UInt16 volRefNum,const UInt32 size);
 
 	virtual ~pdb_SiFile();
-	virtual UInt32 get_mod_time() FILE_SECTION;
+	virtual UInt32 get_mod_time() __attribute__ ((section ("filefns")));
 	;
-	virtual void close() FILE_SECTION;
+	virtual void close() __attribute__ ((section ("filefns")));
 	;
-	virtual void delete_file() FILE_SECTION;
-	virtual void rename(Char * new_name) FILE_SECTION;
+	virtual void delete_file() __attribute__ ((section ("filefns")));
+	virtual void rename(Char * new_name) __attribute__ ((section ("filefns")));
 protected:
 
-	void unlock() FILE_SECTION;
+	void unlock() __attribute__ ((section ("filefns")));
 
-	virtual Boolean create_database(const UInt32 size) FILE_SECTION;
+	virtual Boolean create_database(const UInt32 size) __attribute__ ((section ("filefns")));
 	Boolean add_record(const UInt16 size);
-	void startup() FILE_SECTION;
+	void startup() __attribute__ ((section ("filefns")));
 	;
-	Boolean do_open() FILE_SECTION;
+	Boolean do_open() __attribute__ ((section ("filefns")));
 	;
 	DmOpenRef m_open_ref;
 	MemHandle m_curr_handle;

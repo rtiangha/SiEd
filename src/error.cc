@@ -67,15 +67,15 @@ void DisplayError(const UInt16 type, const char *data)
 		FrmCustomAlert(DebugAlert,data,NULL,NULL);
 		break;
 	case INVALID_FILE_NAME:
-	  FrmCustomAlert(InvalidFileName,data,NULL,NULL);
-	  break;
+		FrmCustomAlert(InvalidFileName,data,NULL,NULL);
+		break;
 	default:
 		break;
 	}
 }
 
 
-#ifdef TEST_OBJECTS
+#ifdef DEBUG_LOG
 void log_entry(const char * buff)
 {
 	if(HostGetHostID()!=hostIDPalmOSEmulator)

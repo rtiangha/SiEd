@@ -37,19 +37,32 @@ czech:sied.prc
 
 #Common compiler flags for all builds
 COMMON=-fno-exceptions -O2 -fno-rtti  -Wall -W -D$(LANG)  -fmove-all-movables -frerun-loop-opt  -Wmissing-declarations  -DHANDSPRING -DMACRO -DV_KEYBOARD -DUSE_WIDTH_CACHE -DUSE_CHAR_CACHE -pedantic -Wshadow
-CXXFLAGS=$(COMMON)
+ifeq ($(BUILD_TYPE),DEBUG)
+	CXXFLAGS = $(COMMON) -DDEBUG
+else
+	ifeq ($(BUILD_TYPE),DEBUG_LOG)
+		CXXFLAGS = $(COMMON) -DDEBUG -DDEBUG_LOG
+	else
+		ifeq ($(BUILD_TYPE),UNIT_TESTS)
+			CXXFLAGS= $(COMMON) -DDEBUG -DTEST_OBJECT_UNIT
+		else
+			CXXFLAGS=$(COMMON)
+		endif
+	endif
+endif
+
 
 CC=m68k-palmos-g++
-OBJ=texthandler.o main.o types.o textview.o resources.o editor.o utility.o filehandler.o  filedialog.o dirnode.o error.o memhandler.o file_interface.o root_dirnode.o vfsfile_dirnode.o updir_dirnode.o vfsdir_dirnode.o pdb_dirnode.o vfs_file_interface.o  file_plugin.o vfsvol_dirnode.o vfs_dirnode.o cache_file_plugin.o encrypt_file_plugin.o sha1.o doc_dirnode.o doc_file_interface.o  pdb_file_interface.o  simacrorecorder.o sikeyboard.o test.o sidocument.o edit_interface.o preferences.o minibuffer.o save_data.o 
+OBJ=texthandler.o main.o types.o textview.o resources.o editor.o utility.o filehandler.o  filedialog.o dirnode.o error.o memhandler.o file_interface.o root_dirnode.o vfsfile_dirnode.o updir_dirnode.o vfsdir_dirnode.o pdb_dirnode.o vfs_file_interface.o  file_plugin.o vfsvol_dirnode.o vfs_dirnode.o cache_file_plugin.o encrypt_file_plugin.o sha1.o doc_dirnode.o doc_file_interface.o  pdb_file_interface.o  simacrorecorder.o sikeyboard.o test.o sidocument.o edit_interface.o preferences.o minibuffer.o save_data.o siscrollbar.o div_dirnode.o
 
-BUILD_OBJ=../build/texthandler.o ../build/main.o ../build/types.o ../build/textview.o ../build/resources.o ../build/editor.o ../build/utility.o ../build/filehandler.o  ../build/filedialog.o ../build/dirnode.o ../build/error.o ../build/memhandler.o ../build/file_interface.o ../build/root_dirnode.o ../build/vfsfile_dirnode.o ../build/updir_dirnode.o ../build/vfsdir_dirnode.o ../build/pdb_dirnode.o ../build/vfs_file_interface.o  ../build/file_plugin.o ../build/vfsvol_dirnode.o ../build/vfs_dirnode.o ../build/cache_file_plugin.o ../build/encrypt_file_plugin.o ../build/sha1.o ../build/doc_dirnode.o ../build/doc_file_interface.o  ../build/pdb_file_interface.o  ../build/simacrorecorder.o ../build/sikeyboard.o ../build/test.o ../build/sidocument.o ../build/edit_interface.o ../build/preferences.o ../build/minibuffer.o ../build/save_data.o 
+BUILD_OBJ=../build/texthandler.o ../build/main.o ../build/types.o ../build/textview.o ../build/resources.o ../build/editor.o ../build/utility.o ../build/filehandler.o  ../build/filedialog.o ../build/dirnode.o ../build/error.o ../build/memhandler.o ../build/file_interface.o ../build/root_dirnode.o ../build/vfsfile_dirnode.o ../build/updir_dirnode.o ../build/vfsdir_dirnode.o ../build/pdb_dirnode.o ../build/vfs_file_interface.o  ../build/file_plugin.o ../build/vfsvol_dirnode.o ../build/vfs_dirnode.o ../build/cache_file_plugin.o ../build/encrypt_file_plugin.o ../build/sha1.o ../build/doc_dirnode.o ../build/doc_file_interface.o  ../build/pdb_file_interface.o  ../build/simacrorecorder.o ../build/sikeyboard.o ../build/test.o ../build/sidocument.o ../build/edit_interface.o ../build/preferences.o ../build/minibuffer.o ../build/save_data.o ../build/siscrollbar.o ../build/div_dirnode.o
 
 sied.prc: textedit frm.bin ../resources/sied.def
 	build-prc ../resources/sied.def  ../build/textedit ../build/*.bin
 	ls -l *.prc
 
 frm.bin: ../resources/form.rcp
-	cpp -D$(LANG) -DMACRO  -P ../resources/form.rcp final_form.rcp
+	cpp -D$(LANG) -DMACRO -P ../resources/form.rcp final_form.rcp
 	pilrc final_form.rcp ../build/
 
 textedit:  $(OBJ) sied-sections.o sied-sections.ld
@@ -75,10 +88,9 @@ clean:
 	rm -f *~
 	rm -f sied.prc
 	rm -f ../build/final_form.rcp
-cvs:
+tidy:
 	astyle --style=ansi -T *.cc
 	astyle --style=ansi -T *.h
-	cvs commit -m "CVS update"
 
 # DO NOT DELETE
 cache_file_plugin.o: cache_file_plugin.h file_plugin.h file_interface.h

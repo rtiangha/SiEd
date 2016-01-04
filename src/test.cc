@@ -11,60 +11,61 @@
 #include "sections.h"
 #include "vfsdir_dirnode.h"
 #include "filedialog.h"
+#include "siscrollbar.h"
 #ifdef TEST_OBJECT_UNIT
 void perform_object_tests()
 {
+SiEditor * edit=new SiEditor(160,0,1);
 
-  block b;
-  b.perform_tests();
-  Position p;
-  p.perform_tests();
-  DrawPosition dp;
-  dp.perform_tests();
-  block_buffer bb;
-  bb.perform_tests();
+	edit->give_focus();
+	edit->perform_tests();
+	delete edit;
+	block b;
+	b.perform_tests();
+	Position p;
+	p.perform_tests();
+	DrawPosition dp;
+	dp.perform_tests();
+	block_buffer bb;
+	bb.perform_tests();
 
-  SiDirNode * node=new vfsdir_SiDirNode("Test");
-  node->perform_tests();
-  delete node;
-  SiFileDialog::perform_tests();
-  SiMemHandler::perform_tests();
-  SiEditor * edit=new SiEditor(160,0,1);
-  edit->set_scrollbar(ScrollBarMain);
-  edit->give_focus();	
-  edit->perform_tests();  
-  delete edit;
-  
- 
-  DisplayError(DEBUG_MESSAGE,"Tests Complete");
+	SiDirNode * node=new vfsdir_SiDirNode("Test");
+	node->perform_tests();
+	delete node;
+	SiFileDialog::perform_tests();
+	SiMemHandler::perform_tests();
+	
+
+
+	DisplayError(DEBUG_MESSAGE,"Tests Complete");
 }
 #endif
 #ifdef BENCH_OBJECTS
 UInt32 memory_reallocated=0;
 void display_statistics()
 {
-  Char buff[512];
-  StrPrintF(buff,"Benchmark complete. Memory Reallocated = %lu",memory_reallocated);
-  DisplayError(DEBUG_MESSAGE,buff);
+	Char buff[512];
+	StrPrintF(buff,"Benchmark complete. Memory Reallocated = %lu",memory_reallocated);
+	DisplayError(DEBUG_MESSAGE,buff);
 }
 void perform_benchmarks()
 {
-  reset_statistics();
+	reset_statistics();
 	SiEditor * edit=new SiEditor(160,0,1);
 	edit->set_scrollbar(ScrollBarMain);
 	edit->give_focus();
-	
+
 	edit->perform_benchmark();
 	display_statistics();
 	delete edit;
 }
 void reset_statistics()
 {
-  memory_reallocated=0;
+	memory_reallocated=0;
 }
 void add_reallocation(UInt32 size)
 {
-  memory_reallocated+=size;
+	memory_reallocated+=size;
 }
 #endif
 #ifdef PERFORM_TEST
@@ -76,8 +77,8 @@ WChar  edit_data[21]={chrBackspace,chrLeftArrow,chrLeftArrow,chrDelete,chrDelete
 void perform_test()
 {
 	UInt32 test_length=StrLen(test_data);
-	
-	for(Int16 t=0;t<280;++t)
+
+	for(Int16 t=0;t<240;++t)
 	{
 		for(UInt32 i=0;i<test_length;++i)
 		{

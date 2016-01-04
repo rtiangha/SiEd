@@ -45,7 +45,8 @@ public:
 	Int16 line;
 	BlockInt  x;
 #ifdef TEST_OBJECT_UNIT
-	void perform_tests() EDIT_SECTION;
+
+	void perform_tests() __attribute__ ((section("editfns")));
 #endif
 };
 Boolean operator <(const Position & lhs,const Position & rhs);
@@ -61,7 +62,8 @@ public:
 	Int16 line;
 	Int16  x;
 #ifdef TEST_OBJECT_UNIT
-	void perform_tests() EDIT_SECTION;
+
+	void perform_tests() __attribute__ ((section("editfns")));
 #endif
 };
 class block
@@ -72,10 +74,11 @@ public:
 	void exit_block();
 	Boolean ensure_space(const BlockInt amount);
 	SiMemChunk * mem_chunk;
-	
+
 	BlockInt n_chars;
 #ifdef TEST_OBJECT_UNIT
-	void perform_tests() EDIT_SECTION;
+
+	void perform_tests() __attribute__ ((section("editfns")));
 #endif
 };
 
@@ -92,9 +95,11 @@ public:
 	void remove_block(const Int16 n);
 
 #ifdef TEST_OBJECT_UNIT
+
 	Boolean perform_tests();
 #endif
-#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 	Int8 n_locks;
 #endif
 protected:

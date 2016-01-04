@@ -8,12 +8,13 @@
 #include "VFSMgr.h"
 #include "form_pos.h"
 #include "AESLib/AESLib.h"
-
+#include "Form.h"
 Boolean SiUtility::VFS_SUPPORT=false;
-Int16 SiUtility::SCREEN_WIDTH=160;
-Int16 SiUtility::SCREEN_HEIGHT=160;
-Int16 SiUtility::ACTIVE_SCREEN_WIDTH=152;
-Int16 SiUtility::ACTIVE_SCREEN_HEIGHT=160;
+Coord SiUtility::SCREEN_WIDTH=160;
+Coord SiUtility::SCREEN_HEIGHT=160;
+Coord SiUtility::ACTIVE_SCREEN_WIDTH=152;
+Coord SiUtility::ACTIVE_SCREEN_HEIGHT=160;
+Coord SiUtility::CurrentScreenHeight=160;
 UInt32 SiUtility::screen_version=0;
 Boolean SiUtility::m_encryption_support=false;
 Boolean SiUtility::m_colour_support=false;
@@ -23,7 +24,7 @@ IndexedColorType SiUtility::back_text_color=0;
 IndexedColorType SiUtility::cursor_color=0;
 IndexedColorType SiUtility::line_color=0;
 IndexedColorType SiUtility::status_color=0;
-
+Boolean SiUtility::m_has_dynamic_IA=false;
 #ifdef USE_WIDTH_CACHE
 Int16 SiUtility::cached_text_width=0;
 BlockInt SiUtility::cached_text_char=0;
@@ -38,9 +39,9 @@ UInt16 SiUtility::c_cache_misses=0;
 UInt16 SiUtility::w_cache_hit_size=0;
 UInt16 SiUtility::c_cache_hit_size=0;
 #endif
-#define CURSOR_RGB_R 203
-#define CURSOR_RGB_G 37
-#define CURSOR_RGB_B 15
+#define CURSOR_RGB_R 213
+#define CURSOR_RGB_G 60
+#define CURSOR_RGB_B 45
 #define LINE_RGB_R 50
 #define LINE_RGB_G 57
 #define LINE_RGB_B 186
@@ -66,9 +67,11 @@ void SiUtility::initialise_calls()
 	if(SysGetTrapAddress(sysTrapSysUnimplemented)==get_char_width)
 	{
 		get_char_width=FntGlueWCharWidth;
-		#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 		DisplayError(DEBUG_MESSAGE,"Falling back to Glue library");
-		#endif
+#endif
+
 	}
 }
 Boolean SiUtility::system_file(const char *file)
@@ -85,12 +88,12 @@ Boolean SiUtility::system_file(const char *file)
 Int16 SiUtility::NextTabStop(const Int16 x)
 {
 
-  //  Int16 r=
-  return BORDER+((x / TAB_WIDTH + 1) * TAB_WIDTH);
-  //  if(r>ACTIVEWIDTH)
-  //r=ACTIVEWIDTH;
+	//  Int16 r=
+	return BORDER+((x / TAB_WIDTH + 1) * TAB_WIDTH);
+	//  if(r>ACTIVEWIDTH)
+	//r=ACTIVEWIDTH;
 
-    //  return r;
+	//  return r;
 }
 void SiUtility::check_system_capabilities()
 {
@@ -103,7 +106,7 @@ void SiUtility::check_system_capabilities()
 
 	if(err!=sysErrLibNotFound)
 	{
-#ifdef EN_LOG2
+#ifdef TEST_OBJECTS_LOG
 		log_entry("AES Support");
 #endif
 
@@ -129,18 +132,19 @@ void SiUtility::check_system_capabilities()
 	rgb.g=STATUS_RGB_G;
 	rgb.b=STATUS_RGB_B;
 	status_color=WinRGBToIndex(&rgb);
-
+	CurrentScreenHeight=SCREEN_HEIGHT;
+	check_dynamic_IA();
 
 }
 Boolean SiUtility::has_colour_support()
 {
-  return m_colour_support;
+	return m_colour_support;
 }
 
 Boolean SiUtility::has_hires_support()
 {
-  //palmos 5 or better means hires
-  return (m_hires_support);
+	//palmos 5 or better means hires
+	return (m_hires_support);
 }
 
 void SiUtility::check_screen_capabilities()
@@ -150,20 +154,20 @@ void SiUtility::check_screen_capabilities()
 	FtrGet(sysFtrCreator, sysFtrNumWinVersion, &screen_version);
 	if(screen_version>=(UInt32)3)
 	{
-	  //on OS 4 or better, check for colour
-	  WinScreenMode(winScreenModeGet,NULL,NULL,NULL,&m_colour_support);
-	  if(screen_version>=(UInt32)4)
-	    {
-	      UInt32 attr;
-	      WinScreenGetAttribute(winScreenDensity, &attr);
-	      
-	      if (attr == kDensityDouble)
+		//on OS 4 or better, check for colour
+		WinScreenMode(winScreenModeGet,NULL,NULL,NULL,&m_colour_support);
+		if(screen_version>=(UInt32)4)
 		{
-		  m_hires_support=true;
+			UInt32 attr;
+			WinScreenGetAttribute(winScreenDensity, &attr);
+
+			if (attr == kDensityDouble)
+			{
+				m_hires_support=true;
+			}
 		}
-	    }
 	}
-	      
+
 
 }
 Boolean SiUtility::is_break_char(const WChar ch)
@@ -174,6 +178,8 @@ Boolean SiUtility::is_break_char(const WChar ch)
 		return false;
 	case chrLineFeed:
 		return true;
+	case chrHorizontalTabulation:
+	  return true;
 	default:
 		return TxtCharIsSpace(ch);
 	}
@@ -186,6 +192,8 @@ Boolean SiUtility::is_break_char(const WChar ch,Boolean ignore_punctuation)
 	case chrApostrophe:
 		return false;
 	case chrLineFeed:
+		return true;
+	case chrHorizontalTabulation:
 		return true;
 	default:
 		if(TxtCharIsPunct(ch))
@@ -206,36 +214,41 @@ BlockInt SiUtility::calc_n_chars(const Char* const data,const BlockInt bytes)
 	{
 		++n_chars;
 
-		#ifdef TEST_OBJECTS
+#ifdef DEBUG
+
 		Int16 w=TxtNextCharSize(data,byte_offset);
 		byte_offset+=w;
+
+	#ifdef DEBUG_LOG
 		if(w>1)
-		  log_entry_number("Char width ",w);
-		#else
+			log_entry_number("Char width ",w);
+	#endif
+#else
+
 		byte_offset+=TxtNextCharSize(data,byte_offset);
-		#endif
-		
+#endif
+
 	}
-/*      while(byte_offset<bytes)
-                {
-                        switch(TxtByteAttr(data[byte_offset]))
-                        {
-                        case byteAttrFirst:
-                                ++n_chars;
-                                byte_offset+=2;
-                                break;
-                        case byteAttrLast:
-                                //++n_chars;
-                                ++byte_offset;
-                                break;
-                        case byteAttrSingle:
-                                n_chars+=2;
-                                byte_offset+=2;
-                                break;
-                        }
-                }
-                if(byte_offset==bytes+1)
-                        --n_chars;*/
+	/*      while(byte_offset<bytes)
+	                {
+	                        switch(TxtByteAttr(data[byte_offset]))
+	                        {
+	                        case byteAttrFirst:
+	                                ++n_chars;
+	                                byte_offset+=2;
+	                                break;
+	                        case byteAttrLast:
+	                                //++n_chars;
+	                                ++byte_offset;
+	                                break;
+	                        case byteAttrSingle:
+	                                n_chars+=2;
+	                                byte_offset+=2;
+	                                break;
+	                        }
+	                }
+	                if(byte_offset==bytes+1)
+	                        --n_chars;*/
 #ifdef __DEBUG_LOG2__
 	Char buff[30];
 	StrPrintF(buff,"n_chars=%i",n_chars);
@@ -323,7 +336,7 @@ Boolean SiUtility::encryption_support()
 }
 void SiUtility::invalidate_cache()
 {
-  cached_text_data=NULL;
+	cached_text_data=NULL;
 }
 
 Int16 SiUtility::CorrectCharsWidth_byte(char * data,const BlockInt max_byte,Boolean * contains_line_feed,Int16 show_codes)
@@ -335,37 +348,41 @@ Int16 SiUtility::CorrectCharsWidth_byte(char * data,const BlockInt max_byte,Bool
 	BlockInt byte_offset=0;
 	WChar the_char;
 
-	#ifdef USE_WIDTH_CACHE
+#ifdef USE_WIDTH_CACHE
+
 	BlockInt max_char=0;
 	if(cached_text_byte<=max_byte&&data==cached_text_data)
-	  {
-	    #ifdef COLLECT_STATISTICS
-	    SiUtility::add_width_cache_hit(cached_text_byte);
-	    #endif
-	    width=cached_text_width;
-	    byte_offset=cached_text_byte;
-	    max_char=cached_text_char;
-	  }
-	#ifdef COLLECT_STATISTICS
+	{
+#ifdef COLLECT_STATISTICS
+		SiUtility::add_width_cache_hit(cached_text_byte);
+#endif
+
+		width=cached_text_width;
+		byte_offset=cached_text_byte;
+		max_char=cached_text_char;
+	}
+#ifdef COLLECT_STATISTICS
 	else
-	  {
-	    SiUtility::add_width_cache_miss();
-	  }
-	#endif
+	{
+		SiUtility::add_width_cache_miss();
+	}
+#endif
 	#endif
 
 	while(byte_offset<max_byte)
 	{
 		byte_offset+=TxtGetNextChar(data,byte_offset,&the_char);
-		#ifdef USE_WIDTH_CACHE
+#ifdef USE_WIDTH_CACHE
+
 		++max_char;
-		#endif
+#endif
+
 		switch(the_char)
 		{
 		case chrLineFeed:
 			if(show_codes&EOL_CODES)
 				width+=RETURN_BITMAP_WIDTH;
-		//meant to be no break here
+			//meant to be no break here
 		case chrCarriageReturn:
 			if(contains_line_feed!=NULL)
 				(*contains_line_feed)=true;
@@ -378,12 +395,12 @@ Int16 SiUtility::CorrectCharsWidth_byte(char * data,const BlockInt max_byte,Bool
 	}
 #ifdef USE_WIDTH_CACHE
 	if( (cached_text_byte<=max_byte&&data==cached_text_data) || (data!=cached_text_data) )
-	  {
-	    cached_text_byte=byte_offset;
-	    cached_text_char=max_char;
-	    cached_text_width=width;
-	    cached_text_data=data;
-	  }
+	{
+		cached_text_byte=byte_offset;
+		cached_text_char=max_char;
+		cached_text_width=width;
+		cached_text_data=data;
+	}
 #endif
 	return width;
 }
@@ -395,25 +412,27 @@ Int16 SiUtility::CorrectCharsWidth_char(char * data,const BlockInt max_char,Bool
 	BlockInt byte_offset=0;
 	WChar the_char;
 	BlockInt n_chars=0;
-	#ifdef USE_WIDTH_CACHE
+#ifdef USE_WIDTH_CACHE
+
 	if(cached_text_char<=max_char&&data==cached_text_data)
-	  {
+	{
 
 #ifdef COLLECT_STATISTICS
-	    SiUtility::add_width_cache_hit(cached_text_byte);
+		SiUtility::add_width_cache_hit(cached_text_byte);
 #endif
-	    width=cached_text_width;
-	    n_chars=cached_text_char;
-	    byte_offset=cached_text_byte;
-	  }
-	#ifdef COLLECT_STATISTICS
-	else
-	  {
-	    SiUtility::add_width_cache_miss();
-	  }
-	#endif
 
-	#endif
+		width=cached_text_width;
+		n_chars=cached_text_char;
+		byte_offset=cached_text_byte;
+	}
+#ifdef COLLECT_STATISTICS
+	else
+	{
+		SiUtility::add_width_cache_miss();
+	}
+#endif
+
+#endif
 	while(n_chars<max_char)
 	{
 		byte_offset+=TxtGetNextChar(data,byte_offset,&the_char);
@@ -423,7 +442,7 @@ Int16 SiUtility::CorrectCharsWidth_char(char * data,const BlockInt max_char,Bool
 		case chrLineFeed:
 			if(show_codes&EOL_CODES)
 				width+=RETURN_BITMAP_WIDTH;
-		//meant to be no break here
+			//meant to be no break here
 		case chrCarriageReturn:
 			if(contains_line_feed!=NULL)
 				(*contains_line_feed)=true;
@@ -434,24 +453,24 @@ Int16 SiUtility::CorrectCharsWidth_char(char * data,const BlockInt max_char,Bool
 			break;
 		}
 	}
-	#ifdef USE_WIDTH_CACHE
+#ifdef USE_WIDTH_CACHE
 	if( (cached_text_char<=max_char&&data==cached_text_data) || (data!=cached_text_data) )
-	  {
-	    cached_text_byte=byte_offset;
-	    cached_text_char=max_char;
-	    cached_text_width=width;
-	    cached_text_data=data;
-	  }
-	#endif
+	{
+		cached_text_byte=byte_offset;
+		cached_text_char=max_char;
+		cached_text_width=width;
+		cached_text_data=data;
+	}
+#endif
 	return width;
 }
 IndexedColorType SiUtility::get_status_text_color()
 {
-  return status_color;
+	return status_color;
 }
 IndexedColorType SiUtility::get_line_color()
 {
-  return line_color;
+	return line_color;
 }
 IndexedColorType SiUtility::get_fore_color()
 {
@@ -472,7 +491,7 @@ void SiUtility::set_field_term(FieldType* text_field,MemHandle source_handle,Boo
 	if(source_handle==NULL)
 		return;
 	Char * prev=(Char*)MemHandleLock(source_handle);
-	
+
 	set_field_term(text_field,prev,set_selection);
 	MemHandleUnlock(source_handle);
 }
@@ -481,62 +500,78 @@ void SiUtility::set_field_term(FieldType* text_field,const Char * prev,Boolean s
 {
 	//set the text of the field to the string passed in
 	//if set_selection is true, selects the entire string
-  //  DisplayError(DEBUG_MESSAGE,prev);
+	//  DisplayError(DEBUG_MESSAGE,prev);
 	if(prev==NULL)
 		return;
-	
+
 	FldEraseField(text_field);
 	clear_field(text_field);
 
 	FldInsert(text_field,prev,StrLen(prev));
-	
+
 	FldDrawField(text_field);
-	
+
 	if(set_selection)
 		FldSetSelection(text_field,0,StrLen(prev));
 }
 
 void SiUtility::clear_field(FieldType * text_field)
 {
-  UInt16 length=FldGetTextLength(text_field);
-  FldDelete(text_field,0,length);
-  FldSetInsertionPoint(text_field,0);
+	UInt16 length=FldGetTextLength(text_field);
+	FldDelete(text_field,0,length);
+	FldSetInsertionPoint(text_field,0);
 }
+
+Boolean SiUtility::has_dynamic_IA()
+{
+		return m_has_dynamic_IA;
+}
+
+void SiUtility::check_dynamic_IA()
+{
+	UInt32 version;
+	Err err = FtrGet(pinCreator, pinFtrAPIVersion, &version); 
+	if (!err && version)
+	{ 
+   		m_has_dynamic_IA=true;
+	}
+}
+
 #ifdef COLLECT_STATISTICS
 void SiUtility::add_width_cache_hit(const UInt16 size)
 {
-  ++w_cache_hits;
-  w_cache_hit_size+=size;
+	++w_cache_hits;
+	w_cache_hit_size+=size;
 }
-void SiUtility::add_char_cache_hit(const UInt16 size) 
+void SiUtility::add_char_cache_hit(const UInt16 size)
 {
-  ++c_cache_hits;
-  c_cache_hit_size+=size;
+	++c_cache_hits;
+	c_cache_hit_size+=size;
 }
 void SiUtility::add_width_cache_miss()
 {
-  ++w_cache_misses;
+	++w_cache_misses;
 }
 
 void SiUtility::add_char_cache_miss()
 {
-  ++c_cache_misses;
+	++c_cache_misses;
 }
 
 void SiUtility::display_stats()
 {
-  Char buff[300];
-  if(w_cache_hits==0)
-    w_cache_hits=1;
-  if(c_cache_hits==0)
-    c_cache_hits=1;
-  Int16 w_percent=(w_cache_hits*100)/(w_cache_hits+w_cache_misses);
-  Int16 c_percent=(c_cache_hits*100)/(c_cache_hits+c_cache_misses);
+	Char buff[300];
+	if(w_cache_hits==0)
+		w_cache_hits=1;
+	if(c_cache_hits==0)
+		c_cache_hits=1;
+	Int16 w_percent=(w_cache_hits*100)/(w_cache_hits+w_cache_misses);
+	Int16 c_percent=(c_cache_hits*100)/(c_cache_hits+c_cache_misses);
 
-  Int16 w_i_saved=w_cache_hit_size/w_cache_hits;
-  Int16 c_i_saved=c_cache_hit_size/c_cache_hits;
-  StrPrintF(buff,"Width cache hit percent:%i , Average iterations saved:%i, Char cache hit percent: %i , average iterations saved:%i",w_percent,w_i_saved,c_percent,c_i_saved);
-  DisplayError(DEBUG_MESSAGE,buff);
+	Int16 w_i_saved=w_cache_hit_size/w_cache_hits;
+	Int16 c_i_saved=c_cache_hit_size/c_cache_hits;
+	StrPrintF(buff,"Width cache hit percent:%i , Average iterations saved:%i, Char cache hit percent: %i , average iterations saved:%i",w_percent,w_i_saved,c_percent,c_i_saved);
+	DisplayError(DEBUG_MESSAGE,buff);
 }
 
 #endif

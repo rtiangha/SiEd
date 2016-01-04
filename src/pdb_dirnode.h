@@ -24,12 +24,12 @@ class pdb_SiDirNode : public SiDirNode
 {
 public:
 	pdb_SiDirNode(Char * filename);
-//	virtual SiFile * get_file(Char * filename)  DIALOG_SECTION;
-	virtual SiFile * create_file(Char * filename,UInt32 size)  DIALOG_SECTION;
-	virtual UInt32 get_file_size()  DIALOG_SECTION;
-	virtual UInt32 get_file_date()  DIALOG_SECTION;
-	virtual SiDirNode * get_copy() DIALOG_SECTION;
-	virtual Int16 get_position_index() DIALOG_SECTION;
+	//	virtual SiFile * get_file(Char * filename)  __attribute__ ((section ("diafns")));
+	virtual SiFile * create_file(Char * filename,UInt32 size)  __attribute__ ((section ("diafns")));
+	virtual UInt32 get_file_size()  __attribute__ ((section ("diafns")));
+	virtual UInt32 get_file_date()  __attribute__ ((section ("diafns")));
+	virtual SiDirNode * get_copy() __attribute__ ((section ("diafns")));
+	virtual Int16 get_position_index() __attribute__ ((section ("diafns")));
 };
 
 #endif

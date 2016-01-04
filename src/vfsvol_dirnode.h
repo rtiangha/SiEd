@@ -24,9 +24,9 @@
 class vfsvol_SiDirNode : public vfs_SiDirNode
 {
 public:
-	vfsvol_SiDirNode(Char * filename) DIALOG_SECTION;
-	virtual SiDirNode* get_copy()DIALOG_SECTION;
-	virtual Int16 get_position_index() DIALOG_SECTION;
+	vfsvol_SiDirNode(Char * filename) __attribute__ ((section ("diafns")));
+	virtual SiDirNode* get_copy()__attribute__ ((section ("diafns")));
+	virtual Int16 get_position_index() __attribute__ ((section ("diafns")));
 };
 
 #endif

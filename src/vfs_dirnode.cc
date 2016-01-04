@@ -133,8 +133,8 @@ void vfs_SiDirNode::populate()
 				//MemPtrFree(child);
 			}
 			else
-			  break;
-			
+				break;
+
 		}
 		MemPtrFree(temp_name);
 	}

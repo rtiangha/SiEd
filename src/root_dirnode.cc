@@ -18,7 +18,7 @@
  */
 
 #include "root_dirnode.h"
-
+#include "div_dirnode.h"
 
 #include "doc_file_interface.h"
 
@@ -32,19 +32,20 @@
 #include "vfsvol_dirnode.h"
 #include "error.h"
 
+
 root_SiDirNode::root_SiDirNode()
 {
 	//	name=FORWARD_SLASH;
 	parent=NULL;
 	name=NULL;
-	
+
 	options&=TOP_LEVEL;
 }
 
 Char * root_SiDirNode::get_path(UInt16 type)
 {
-	Char * ret=(Char*)MemPtrNew(StrLen("Main")+1);
-	StrCopy(ret,"Main");
+	Char * ret=(Char*)MemPtrNew(StrLen(MAIN_DIRNODE_TEXT)+1);
+	StrCopy(ret,MAIN_DIRNODE_TEXT);
 	return ret;
 }
 
@@ -87,11 +88,12 @@ void root_SiDirNode::populate()
 	if(SiUtility::VFS_SUPPORT)
 		add_vfs_volumes();
 
+	SiDirNode * div=new div_SiDirNode();
 
-	add_pdb_files();
-
+	add_child(div);
 
 	add_doc_files();
+
 
 }
 
@@ -137,12 +139,6 @@ void root_SiDirNode::add_vfs_volumes()
 	}
 }
 
-void root_SiDirNode::add_pdb_files()
-{
-	SiDirNode * node=new pdb_SiDirNode(NULL);
-	add_databases_by_type(node,AppID,PDB_TYPE);
-	MemPtrFree(node);
-}
 void root_SiDirNode::add_databases_by_type(SiDirNode * node,UInt32 creator,UInt32 type)
 {
 	Err err;

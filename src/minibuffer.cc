@@ -16,10 +16,10 @@ SiMiniBuffer::SiMiniBuffer(Int16 x,Int16 y,Int16 max_width)
 	m_backing_store=NULL;
 	m_curr_text_width=0;
 	m_x_offset=0;
-	m_text_handle=NULL;	
+	m_text_handle=NULL;
 
 	FntSetFont(font);
-	
+
 	copy_background();
 
 }
@@ -36,7 +36,7 @@ SiMiniBuffer::~SiMiniBuffer()
 	{
 		MemHandleFree(m_text_handle);
 		m_text_handle=NULL;
-	}	
+	}
 }
 
 void SiMiniBuffer::copy_background()
@@ -51,7 +51,7 @@ void SiMiniBuffer::copy_background()
 
 	if (err != errNone)
 		DisplayError(SCREEN_ERROR, NULL);
-	
+
 	WinCopyRectangle(NULL,m_backing_store,&rp,0,0,winPaint);
 	WinEraseRectangle(&rp,0);
 }
@@ -69,14 +69,14 @@ void SiMiniBuffer::restore_background()
 
 void SiMiniBuffer::set_title(Char * text)
 {
-	
+
 	Int16 len=StrLen(text);
-	
+
 	if(m_title!=NULL)
 		MemPtrFree(m_title);
-	
+
 	m_title=(Char*)MemPtrNew(len+1);
-	
+
 	StrCopy(m_title,text);
 	fontID font=FntSetFont(stdFont);
 	m_title_width=SiUtility::CorrectCharsWidth_char(m_title,len,NULL);
@@ -162,10 +162,10 @@ void SiMiniBuffer::redraw_on_delete_char(WChar the_char)
 		rp.extent.y=m_d_height;
 		WinEraseRectangle(&rp,0);
 	}
-	
+
 
 	draw_cursor();
-	FntSetFont(font);	
+	FntSetFont(font);
 }
 
 
@@ -175,51 +175,51 @@ void SiMiniBuffer::give_key(WChar the_char)
 	Int16 initial_size=0;
 	if(m_text_handle!=NULL)
 		initial_size=MemHandleSize(m_text_handle);
-		
+
 	switch(the_char)
 	{
-		case chrBackspace:
-			if(m_text_handle==NULL)
+	case chrBackspace:
+		if(m_text_handle==NULL)
+			return;
+		else
+		{
+			if(MemHandleSize(m_text_handle)==1)
+			{
 				return;
-			else
-			{
-				if(MemHandleSize(m_text_handle)==1)
-				{
-					return;
-				}
-				term=(Char*)MemHandleLock(m_text_handle);
-				Int16 w=TxtGetPreviousChar(term,initial_size-1,&the_char);
-				MemHandleUnlock(m_text_handle);
-				MemHandleResize(m_text_handle,initial_size-w);
-				term=(Char*)MemHandleLock(m_text_handle);
-				term[MemHandleSize(m_text_handle)-1]='\0';
-				MemHandleUnlock(m_text_handle);
-			}
-			redraw_on_delete_char(the_char);
-			break;
-		default:
-			if(!(TxtCharIsPrint(the_char)))
-				return;
-			if(m_text_handle!=NULL)
-			{
-				if(MemHandleSize(m_text_handle)>MAX_FIND_STRING_LENGTH)
-				return;
-			}
-			if(m_text_handle==NULL)
-			{
-				m_text_handle=MemHandleNew(TxtCharSize(the_char)+1);
-			}
-			else
-			{
-				initial_size=MemHandleSize(m_text_handle)-1;
-				MemHandleResize(m_text_handle,initial_size+TxtCharSize(the_char)+1);
 			}
 			term=(Char*)MemHandleLock(m_text_handle);
-			MemMove(term+initial_size,((Char*)(&the_char))+(2-TxtCharSize(the_char)),TxtCharSize(the_char));
+			Int16 w=TxtGetPreviousChar(term,initial_size-1,&the_char);
+			MemHandleUnlock(m_text_handle);
+			MemHandleResize(m_text_handle,initial_size-w);
+			term=(Char*)MemHandleLock(m_text_handle);
 			term[MemHandleSize(m_text_handle)-1]='\0';
 			MemHandleUnlock(m_text_handle);
-			redraw_on_insert_char(the_char);
-			break;
+		}
+		redraw_on_delete_char(the_char);
+		break;
+	default:
+		if(!(TxtCharIsPrint(the_char)))
+			return;
+		if(m_text_handle!=NULL)
+		{
+			if(MemHandleSize(m_text_handle)>MAX_FIND_STRING_LENGTH)
+				return;
+		}
+		if(m_text_handle==NULL)
+		{
+			m_text_handle=MemHandleNew(TxtCharSize(the_char)+1);
+		}
+		else
+		{
+			initial_size=MemHandleSize(m_text_handle)-1;
+			MemHandleResize(m_text_handle,initial_size+TxtCharSize(the_char)+1);
+		}
+		term=(Char*)MemHandleLock(m_text_handle);
+		MemMove(term+initial_size,((Char*)(&the_char))+(2-TxtCharSize(the_char)),TxtCharSize(the_char));
+		term[MemHandleSize(m_text_handle)-1]='\0';
+		MemHandleUnlock(m_text_handle);
+		redraw_on_insert_char(the_char);
+		break;
 	}
 
 }
