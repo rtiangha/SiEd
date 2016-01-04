@@ -1,7 +1,9 @@
 # SiEd - Text Editing for Palms
 This is the original SiEd text editor for Palm OS devices developed by Benjamin Roe. This project was originally hosted at [benroe.com](https://web.archive.org/web/20070323092635/http://benroe.com/sied/index.php) which shut down some time in mid-2007.
 
-The final stable version released publically was 0.9.11 released on March 5, 2005 and the final beta version was 0.10-beta3 released on April 27, 2005. The original release versions were slightly updated in order to compile on Palm SDKs released after 2005 (mainly through the addition of a few more library headers in editor.cc), but were otherwised untouched. There are some build instructions and development environment requirements below.
+The final stable version released publically was 0.9.11 released on March 5, 2005 and the final beta version was 0.10-beta3 released on April 27, 2005.
+
+When this project was posted to GitHub in 2016, the original release versions were slightly updated in order to compile using Palm SDKs released after 2005 (done mainly through the addition of a few more library headers in editor.cc), but were otherwised untouched. There are some build instructions and development environment requirements below.
 
 ## What Is It?
 SiEd is a free simple text editor for Palm OS® based handhelds. Its purpose is to provide an easy way to create and edit large text documents on Palm OS devices, without the limitations of the built-in Memopad program. It's designed mainly for use with an external keyboard of some sort, although of course works fine without. The program is distributed under the GPL.
