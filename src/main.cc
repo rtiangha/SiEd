@@ -305,7 +305,7 @@ Boolean texteditloop(EventPtr e)
 {
 	FormPtr form;
 	//AlphaSmart Dana
-	RectangleType rect;
+	//RectangleType rect;
 
 	switch(e->eType)
 	{
@@ -314,13 +314,13 @@ Boolean texteditloop(EventPtr e)
 		form = FrmGetActiveForm();
 
                 //Check for Dana Screen Extension and if present, grab new Window bounds
-                if (_ScreenFeaturePresent (&version) == true)
-                {
-                        rect.topLeft.x = 0;
-                        rect.topLeft.y = 0;
-                        WinGetDisplayExtent(&rect.extent.x, &rect.extent.y);
-                        WinSetWindowBounds(FrmGetWindowHandle(form), &rect);
-                }
+                //if (_ScreenFeaturePresent (&version) == true)
+                //{
+                //        rect.topLeft.x = 0;
+                //        rect.topLeft.y = 0;
+                //        WinGetDisplayExtent(&rect.extent.x, &rect.extent.y);
+                //        WinSetWindowBounds(FrmGetWindowHandle(form), &rect);
+                //}
 
 
 		FrmDrawForm(form);
