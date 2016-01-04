@@ -50,7 +50,7 @@ http://prc-tools.sourceforge.net
 
 as well as Palm OS 5 SDK R3 or R4 along with Palm Desktop SDK 5.4.
 
-When creating your Palm SDK directory by combining the OS and the Desktop SDKs, ensure that the 68K and Common directories of the Desktop SDK appear inside the root include folder of the OS SDK. Depending on where you got your SDKs, they may be formatted for Windows machines, which may give warnings when compiling under a Linux environment. If so, you'll want to run all of the text files through a utility such as dos2unix to convert them to a Unix-friendly format. 
+When creating your Palm SDK directory by combining the OS and the Desktop SDKs, ensure that the 68K and Common directories of the Desktop SDK appear inside the root include folder of the OS SDK. Depending on where you got your SDKs, they may be formatted for Windows machines, which may give warnings when compiling under a Linux environment. If so, you'll want to run all of the text files through a utility such as dos2unix to convert them to a Unix-friendly format first. 
 
 The targets (i.e. type make target) available for the make process are:
 
