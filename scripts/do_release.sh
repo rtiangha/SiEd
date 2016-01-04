@@ -23,7 +23,7 @@ make
 cp sied.prc ../../sied_install/sied-current.prc
 zip sied-$1.prc.zip sied.prc
 mv sied-$1.prc.zip ../../sied_install/
-cp changelog ../../sied_install/changelog.txt
+cp ../docs/changelog ../../sied_install/changelog.txt
 
 make_release $1 french fr
 make_release $1 german de
