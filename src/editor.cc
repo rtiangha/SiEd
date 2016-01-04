@@ -18,6 +18,9 @@
  */
 #ifdef HANDSPRING
 #include <68K/Hs.h>
+#include <Common/Libraries/FileBrowser/FileBrowserLibCommon.h>
+#include <68K/System/HsExtKbdUtils.h>
+#include <Common/System/HsKeyCodes.h>
 #endif
 
 #ifdef COLLAPSIBLE
