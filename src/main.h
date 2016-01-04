@@ -3,12 +3,6 @@
 #include "sections.h"
 #include "edit_interface.h"
 
-// Include AlphaSmart libraries
-#include <WideTallApp.h>
-#include <WideTallAppChars.h>
-#include <Screen.h>
-
-
 extern SiEditInterface* edit_interface;
 #ifndef MAIN_HPP
 #define MAIN_HPP
