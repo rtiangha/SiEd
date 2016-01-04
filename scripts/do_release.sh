@@ -13,9 +13,9 @@ function make_release()
 #cvs tag -b SiEd-Release_$1
 
 cd /tmp
-cvs co sied-stable
+git clone https://github.com/rtiangha/SiEd.git
 mkdir sied_install
-cd sied-stable/src/
+cd SiEd/src/
 make clean
 make
 cp sied.prc ../../sied_install/sied-current.prc
@@ -39,8 +39,9 @@ make_release $1 czech cz
 
 make clean
 cd /tmp/
-mv sied-stable sied
+mv SiEd sied
 tar zcvf sied-$1-src.tar.gz sied/
 mv sied-$1-src.tar.gz sied_install
 
 rm -rf sied/
+
