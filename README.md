@@ -32,11 +32,17 @@ Using the editor is pretty self explanatory. All commands have a keyboard equiva
 ## Development Environment
 Compiles using PRC-Tools and PiLRC.
 
+The original 2005 release as published by Benjamin Roe was slightly modified in order to compile using more modern Palm SDKs (mainly, the addition of a few more library header includes in the editor.cc file). Has tested as successfully compiling using either Palm OS 5 SDK R3 or R4 combined with Palm Desktop SDK 5.4. It might work with other combinations of the Palm/Garnet SDKs as well, but for future development, it'd be wise to standardize on these versions of the SDKs.
+
 ## How to Build?
 
 Building a PalmOS executable from this source code requires a complete install of the prc-tools package, available from:
 
 http://prc-tools.sourceforge.net
+
+as well as Palm OS 5 SDK R3 or R4 along with Palm Desktop SDK 5.4.
+
+When creating your Palm SDK directory by combining the OS and the Desktop SDKs, ensure that the 68K and Common directories of the Desktop SDK appear inside the root include folder of the OS SDK. Depending on where you got your SDKs, they may be formatted for Windows machines, which may give warnings when compiling under a Linux environment. If so, you'll want to run all of the text files through a utility such as dos2unix to convert them to a Unix-friendly format. 
 
 The targets (i.e. type make target) available for the make process are:
 
