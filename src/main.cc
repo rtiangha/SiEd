@@ -304,24 +304,12 @@ void StopApplication()
 Boolean texteditloop(EventPtr e)
 {
 	FormPtr form;
-	//AlphaSmart Dana
-	//RectangleType rect;
 
 	switch(e->eType)
 	{
 	case frmOpenEvent:
 		UInt32 version;
 		form = FrmGetActiveForm();
-
-                //Check for Dana Screen Extension and if present, grab new Window bounds
-                //if (_ScreenFeaturePresent (&version) == true)
-                //{
-                //        rect.topLeft.x = 0;
-                //        rect.topLeft.y = 0;
-                //        WinGetDisplayExtent(&rect.extent.x, &rect.extent.y);
-                //        WinSetWindowBounds(FrmGetWindowHandle(form), &rect);
-                //}
-
 
 		FrmDrawForm(form);
 		edit_interface=new SiEditInterface();

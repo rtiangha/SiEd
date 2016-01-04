@@ -2,9 +2,6 @@
 #include "../src/form_pos.h"
 VERSION "0.10.0"
 
-// Required for AlphaSmart Dana's WideTall support
-HEX "wTap" ID 1000 0x00 0x00 0x00 0x01
-
 ICONFAMILYEX
 BEGIN
 	BITMAP "../resources/icon.bmp" BPP 1  TRANSPARENT 255 0 255
