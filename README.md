@@ -3,9 +3,9 @@ This is the original SiEd text editor for Palm OS devices developed by Benjamin 
 
 The final stable version released publically was 0.9.11 released on March 5, 2005 and the final beta version was 0.10-beta3 released on April 27, 2005.
 
-When this project was posted to GitHub in 2016, the original release versions were slightly updated in order to compile using Palm SDKs released after 2005 (done mainly through the addition of a few more library headers in `editor.cc`), but were otherwised untouched. There are some build instructions and development environment requirements below. The original unmodified sources for the 0.9.11 and 0.10-beta3 releases as they were published back in 2005 are included as attachments in their respective release posts here on GitHub.
+When this project was posted to GitHub in 2016, the original release versions were slightly updated in order to compile using Palm SDKs released after 2005 (done mainly through the addition of a few more library headers in `editor.cc`), but were otherwised untouched. There are some build instructions and development environment requirements below. The original unmodified sources for the 0.9.11 and 0.10-beta3 releases as they were published back in 2005 are included as attachments in their respective release posts here on GitHub for posterity.
 
-There is a also fork of SiEd optimized for the widescreen display of the AlphaSmart Dana called _SiEd-Dana_ based off of the 0.10-beta3 release which can be found [here](https://github.com/rtiangha/SiEd-Dana).
+There is a also fork of SiEd optimized for the widescreen display of the AlphaSmart Dana called **SiEd-Dana** based off of the 0.10-beta3 release which can be found [here](https://github.com/rtiangha/SiEd-Dana).
 
 ## What Is It?
 SiEd is a free simple text editor for Palm OS® based handhelds. Its purpose is to provide an easy way to create and edit large text documents on Palm OS devices, without the limitations of the built-in Memopad program. It's designed mainly for use with an external keyboard of some sort, although of course works fine without. The program is distributed under the GPL.
@@ -42,7 +42,7 @@ There is a usage guide with screenshots and other useful information available f
 ## Development Environment
 Compiles using [PRC-Tools](http://prc-tools.sourceforge.net/) and [PiLRC](http://pilrc.sourceforge.net/).
 
-The original 2005 release as published by Benjamin Roe was slightly modified in order to compile using more modern Palm SDKs released after 2005 (mainly, the addition of a few more library header includes in the editor.cc file). Has tested as successfully compiling using either [Palm OS 5 SDK R3 or R4](https://web.archive.org/web/20150101205837/http://cdn.xenu.tk/pub/palm-archive/pub/programming/sdk/5.0/) combined with [Palm Desktop SDK 5.4](https://web.archive.org/web/20150615082823/http://pdaexpert.net/downloads/palm-os/sdk-v54-para-produtos-palm-com-palm-os/). It might work with other combinations of the Palm/Garnet SDKs as well, but for future development, it'd be wise to standardize on these versions of the SDKs. With the inclusion of the new library includes in `editor.cc`, SiEd may no longer compile successfully using older SDK versions without reverting the changes first.
+The original 2005 release as published by Benjamin Roe was slightly modified in order to compile using more modern Palm SDKs released after 2005 (mainly, the addition of a few more library header includes in the editor.cc file). Has tested as successfully compiling using either [Palm OS 5 SDK R3 *or* R4](https://web.archive.org/web/20150101205837/http://cdn.xenu.tk/pub/palm-archive/pub/programming/sdk/5.0/) combined with [Palm Desktop SDK 5.4](https://web.archive.org/web/20150615082823/http://pdaexpert.net/downloads/palm-os/sdk-v54-para-produtos-palm-com-palm-os/). It might work with other combinations of the Palm/Garnet SDKs as well, but for future development, it'd be wise to standardize on these versions of the SDKs. With the inclusion of the new library includes in `editor.cc`, SiEd may no longer compile successfully using older SDK versions without reverting the changes first.
 
 ## How to Build?
 
@@ -57,4 +57,4 @@ The targets (i.e. type `make <target>`) available for the make process are:
 
 Copyright Notice: This software is licensed under the terms of the GPL, included in the LICENSE file in the source code directory.
 
-The icons are Copyright Stefan Smith and Tankut Enric, and the copyright for the various translations is attributed in the `text_resources.h` file. Everything else is (C) Benjamin Roe 2003-2005.
+The icons are Copyright Stefan Smith and Tankut Enric, and the copyright for the various translations is attributed in the `text_resources.h` file. Everything else is Copyright 2003-2005 Benjamin Roe.
