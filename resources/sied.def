@@ -1,0 +1,6 @@
+application { "SiEd" SiEd }
+multiple code { "utilfns" }
+multiple code { "filefns" }
+multiple code { "diafns" }
+multiple code { "texfns" }
+multiple code { "editfns" }
