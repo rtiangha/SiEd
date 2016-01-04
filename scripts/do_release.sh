@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# USAGE:  do_release <version number>
+
 function make_release()
 {
 	echo $1;
@@ -10,7 +13,6 @@ function make_release()
 	mv sied-"$1"-"$3".prc.zip ../../sied_install/
 }
 
-#cvs tag -b SiEd-Release_$1
 
 cd /tmp
 git clone https://github.com/rtiangha/SiEd.git
