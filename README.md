@@ -32,7 +32,7 @@ Using the editor is pretty self explanatory. All commands have a keyboard equiva
 ## Development Environment
 Compiles using PRC-Tools and PiLRC.
 
-The original 2005 release as published by Benjamin Roe was slightly modified in order to compile using more modern Palm SDKs (mainly, the addition of a few more library header includes in the editor.cc file). Has tested as successfully compiling using either Palm OS 5 SDK R3 or R4 combined with Palm Desktop SDK 5.4. It might work with other combinations of the Palm/Garnet SDKs as well, but for future development, it'd be wise to standardize on these versions of the SDKs.
+The original 2005 release as published by Benjamin Roe was slightly modified in order to compile using more modern Palm SDKs released after 2005 (mainly, the addition of a few more library header includes in the editor.cc file). Has tested as successfully compiling using either Palm OS 5 SDK R3 or R4 combined with Palm Desktop SDK 5.4. It might work with other combinations of the Palm/Garnet SDKs as well, but for future development, it'd be wise to standardize on these versions of the SDKs. With the inclusion of the new library includes in editor.cc, SiEd may no longer compile successfully using older SDK versions without reverting the changes first.
 
 ## How to Build?
 
