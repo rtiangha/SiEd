@@ -32,6 +32,9 @@ Using the editor is pretty self explanatory. All commands have a keyboard equiva
 ## Usage
 There is a usage guide with screenshots and other useful information available from the original project site, which you can now access via [Archive.org's Wayback Machine](https://web.archive.org/web/20070130170506/http://benroe.com/sied/user.php).
 
+## Known Issues
+* There is a bug in version 0.9.11 where the program may crash when using the Inc. Search functionality.
+
 ## Development Environment
 Compiles using PRC-Tools and PiLRC.
 
